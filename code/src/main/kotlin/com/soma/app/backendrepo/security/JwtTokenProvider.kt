@@ -1,31 +1,26 @@
 package com.soma.app.backendrepo.security
 
-import com.soma.app.backendrepo.app_user.user.UserPrincipal
 import com.soma.app.backendrepo.app_user.user.model.ClaimRoles
-import com.soma.app.backendrepo.app_user.user.repository.UserRepository
+import com.soma.app.backendrepo.app_user.user.model.User
 import com.soma.app.backendrepo.utils.Logger
-import io.jsonwebtoken.Claims
-import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.ExpiredJwtException
-import io.jsonwebtoken.UnsupportedJwtException
-import io.jsonwebtoken.MalformedJwtException
+import io.jsonwebtoken.*
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import java.security.Key
 import java.security.SignatureException
-import java.util.*
+import java.util.Date
 
 @Service
 class JwtTokenProvider(
     private val jwtProperties: JwtProperties,
-    private val userRepository: UserRepository
 ) {
     private val log = Logger<JwtTokenProvider>().getLogger()
-    fun createToken(userPrinciple: UserPrincipal): String {
-        val claims = Jwts.claims().setSubject(userPrinciple.email)
-        claims[ClaimRoles.Role.role] = userPrinciple.role
-        claims[ClaimRoles.Permission.role] = userPrinciple.permissions
+    fun createToken(user: User): String {
+        val claims = Jwts.claims().setSubject(user.username)
+        claims[ClaimRoles.Role.role] = user.role
+        claims[ClaimRoles.Permission.role] = user.permissions
 
         val now = Date()
         val expiryDate = Date(now.time + jwtProperties.expirationTime)
@@ -33,12 +28,29 @@ class JwtTokenProvider(
         return Jwts.builder()
             .setClaims(claims)
             .setIssuedAt(now)
-            .signWith(getSignWithKey())
+            .signWith(getSignWithKey(), SignatureAlgorithm.HS256)
             .setExpiration(expiryDate)
             .compact()
     }
 
-    fun validateToken(token: String): Boolean {
+    fun isTokenValid(token: String, userDetails: UserDetails): Boolean {
+        val userEmail = getEmailFromToken(token)
+        if(userEmail == userDetails.username && validateToken(token) && !isTokenExpired(token)) {
+            return true
+        }
+        return false
+    }
+
+    fun isTokenExpired(token: String): Boolean {
+        val expiration = getExpirationDateFromToken(token)
+        return expiration.before(Date())
+    }
+
+    fun getExpirationDateFromToken(token: String): Date {
+        return getClaimFromToken(token, Claims::getExpiration)
+    }
+
+    private fun validateToken(token: String): Boolean {
         try {
             Jwts
                 .parserBuilder()
@@ -67,18 +79,14 @@ class JwtTokenProvider(
     }
 
     fun getEmailFromToken(token: String): String {
-        val claims = extractAllClaims(token)
-        return claims.subject
+        return getClaimFromToken(token, Claims::getSubject)
     }
 
-    // extract specific claims from token
-    fun <T> getClaimFromToken(token: String, claimType: String? = null): T {
+    fun <T> getClaimFromToken(token: String, claimsResolver: (Claims) -> T): T {
         val claims = extractAllClaims(token)
-        if (claimType != null) {
-            return claims[claimType] as T
-        }
-        return claims as T
+        return claimsResolver(claims)
     }
+
 
     fun extractAllClaims(token: String): Claims {
         return Jwts

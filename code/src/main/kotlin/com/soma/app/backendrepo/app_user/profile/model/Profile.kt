@@ -17,10 +17,6 @@ data class Profile(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    val user: User,
-
     @Column(nullable = false)
     val name: String,
 
@@ -28,5 +24,21 @@ data class Profile(
 
     val phone: String,
 
+    val description: String
+) {
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    var user: User? = null
+
+    fun assignUser(user: User) {
+        this.user = user
+    }
+}
+
+data class ProfileResponse(
+    val id: Long,
+    val name: String,
+    val address: String,
+    val phone: String,
     val description: String
 )
