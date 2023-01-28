@@ -1,16 +1,14 @@
 package com.soma.app.backendrepo.security.auth.controller
 
+import com.soma.app.backendrepo.error_handling.ApiResponse
 import com.soma.app.backendrepo.security.auth.service.AuthenticationService
 import com.soma.app.backendrepo.security.auth.pojos.AuthenticationRequest
-import com.soma.app.backendrepo.security.auth.pojos.AuthenticationResponse
 import com.soma.app.backendrepo.security.auth.pojos.RegistrationRequest
-import com.soma.app.backendrepo.utils.RequestResponse
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 
 
 @RestController
@@ -18,46 +16,68 @@ import org.springframework.web.bind.annotation.GetMapping
 class AuthenticationController(
     private val authenticationService: AuthenticationService
 ) {
-    companion object {
-        const val TAG = "AuthenticationController"
-    }
+
     @PostMapping("/register")
-    fun register(@RequestBody registrationRequest: RegistrationRequest): AuthenticationResponse {
-        val response = authenticationService.register(registrationRequest)
-        return when (response.body) {
-            is RequestResponse.Success -> {
-                (response.body as RequestResponse.Success).data
-            }
-            is RequestResponse.Error -> {
-                val message = (response.body as RequestResponse.Error).message
-                throw Exception("tag: $TAG, message: error occurred while registering user: $message ")
+    fun register(@RequestBody registrationRequest: RegistrationRequest): ApiResponse {
+        val apiResponse = authenticationService.register(registrationRequest)
+        return when(apiResponse.error) {
+            null -> {
+                ApiResponse(
+                    status = apiResponse.status,
+                    error = null,
+                    data = apiResponse.data
+                )
             }
             else -> {
-                throw Exception("Unknown error occurred while registering user status: ${response.statusCode}")
+                ApiResponse(
+                    status = apiResponse.status,
+                    error = apiResponse.error,
+                    data = apiResponse.data
+                )
             }
         }
 
     }
 
     @PostMapping("/login")
-    fun authenticateUser(@RequestBody authenticationRequest: AuthenticationRequest): AuthenticationResponse {
+    fun authenticateUser(@RequestBody authenticationRequest: AuthenticationRequest): ApiResponse {
         val response = authenticationService.login(authenticationRequest)
-        return when (response.body) {
-            is RequestResponse.Success -> {
-                (response.body as RequestResponse.Success).data
-            }
-            is RequestResponse.Error -> {
-                val message = (response.body as RequestResponse.Error).message
-                throw Exception("tag: $TAG, message: error occurred while logging in user: $message ")
+        return when(response.error) {
+            null -> {
+                ApiResponse(
+                    status = response.status,
+                    error = null,
+                    data = response.data
+                )
             }
             else -> {
-                throw Exception("tag: $TAG, message: Unknown error occurred while logging in user status: ${response.statusCode}")
+                ApiResponse(
+                    status = response.status,
+                    error = response.error,
+                    data = response.data
+                )
             }
         }
     }
 
-    @GetMapping("/test")
-    fun hello(): ResponseEntity<String> {
-        return ResponseEntity.ok("Hello World from secure endpoint")
+    @PostMapping("/confirm-password/{token}")
+    fun confirmEmail(@PathVariable token: String): ApiResponse {
+        val response = authenticationService.confirmEmail(token)
+        return when (response.error) {
+            null -> {
+                ApiResponse(
+                    status = response.status,
+                    error = null,
+                    data = response.data
+                )
+            }
+            else -> {
+                ApiResponse(
+                    status = response.status,
+                    error = response.error,
+                    data = response.data
+                )
+            }
+        }
     }
 }

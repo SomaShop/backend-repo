@@ -16,14 +16,14 @@ import java.security.SecureRandom
 
 @Configuration
 class ApplicationConfig(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) {
     private final val logger = Logger<ApplicationConfig>().getLogger()
     @Bean
     fun userDetailsService(): UserDetailsService {
         return UserDetailsService { email ->
             userRepository.findByEmail(email)
-                .orElseThrow { UsernameNotFoundException("User not found with email: $email") }
+                .orElseThrow { UsernameNotFoundException("Could not find user with email: $email") }
         }
     }
 

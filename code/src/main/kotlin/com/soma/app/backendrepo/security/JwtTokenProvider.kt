@@ -2,8 +2,14 @@ package com.soma.app.backendrepo.security
 
 import com.soma.app.backendrepo.app_user.user.model.ClaimRoles
 import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.config.JwtProperties
 import com.soma.app.backendrepo.utils.Logger
-import io.jsonwebtoken.*
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.MalformedJwtException
+import io.jsonwebtoken.UnsupportedJwtException
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import org.springframework.security.core.userdetails.UserDetails
@@ -14,7 +20,7 @@ import java.util.Date
 
 @Service
 class JwtTokenProvider(
-    private val jwtProperties: JwtProperties,
+    private val jwtProperties: JwtProperties
 ) {
     private val log = Logger<JwtTokenProvider>().getLogger()
     fun createToken(user: User): String {
@@ -33,12 +39,18 @@ class JwtTokenProvider(
             .compact()
     }
 
-    fun isTokenValid(token: String, userDetails: UserDetails): Boolean {
+    fun isTokenValid(
+        token: String,
+        userDetails: UserDetails,
+    ): Boolean {
         val userEmail = getEmailFromToken(token)
-        if(userEmail == userDetails.username && validateToken(token) && !isTokenExpired(token)) {
+        if (userEmail == userDetails.username
+            && validateToken(token)
+            && !isTokenExpired(token)
+        ) {
             return true
         }
-        return false
+        throw Exception("Could not validate Token")
     }
 
     fun isTokenExpired(token: String): Boolean {
@@ -59,18 +71,21 @@ class JwtTokenProvider(
                 .parseClaimsJws(token)
             return true
         } catch (ex: SignatureException) {
-            println("Invalid JWT signature")
+            log.error("Tag: JwtTokenProvider, message: ${ex.message}")
+            throw Exception("Invalid JWT signature. message: ${ex.message}")
         } catch (ex: MalformedJwtException) {
-            println("Invalid JWT token")
+            log.error("Tag: JwtTokenProvider, message: ${ex.message}")
+            throw Exception("Invalid JWT token: message: ${ex.message}")
         } catch (ex: ExpiredJwtException) {
-            println("Expired JWT token")
+            log.error("Tag: JwtTokenProvider, message: ${ex.message}")
+            throw Exception("Token is expired message: ${ex.message}")
         } catch (ex: UnsupportedJwtException) {
-            println("Unsupported JWT token")
-            log.error("Unsupported JWT token")
+            log.error("Tag: JwtTokenProvider, message: ${ex.message}")
+            throw Exception("Unsupported JWT token. message: ${ex.message}")
         } catch (ex: IllegalArgumentException) {
-            println("JWT claims string is empty.")
+            log.error("Tag: JwtTokenProvider, message: ${ex.message}")
+            throw Exception("JWT claims string is empty. message: ${ex.message}")
         }
-        return false
     }
 
     private fun getSignWithKey(): Key {
@@ -96,4 +111,22 @@ class JwtTokenProvider(
             .parseClaimsJws(token)
             .body
     }
+
+    fun createConfirmPasswordToken(user: User): String {
+        val tokenExpirationTime = 15 * 60 * 1000
+        val claims = Jwts
+            .claims()
+            .setSubject(user.username)
+
+        val now = Date()
+        val expiryDate = Date(now.time + tokenExpirationTime)
+
+        return Jwts.builder()
+            .setClaims(claims)
+            .setIssuedAt(now)
+            .signWith(getSignWithKey(), SignatureAlgorithm.HS256)
+            .setExpiration(expiryDate)
+            .compact()
+    }
+
 }

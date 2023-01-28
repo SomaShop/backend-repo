@@ -7,7 +7,6 @@ import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection
@@ -18,19 +17,20 @@ import jakarta.persistence.CascadeType
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
+import jakarta.persistence.GenerationType
+import java.util.UUID
 
 @Entity
 @Table(name = "users")
 data class User(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private val id: Long = 0,
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private val id: UUID? = null,
+    @Column(nullable = false)
+    val firstName: String,
 
     @Column(nullable = false)
-    val FirstName: String,
-
-    @Column(nullable = false)
-    val LastName: String,
+    val lastName: String,
 
     @Column(nullable = false, unique = true)
     private val email: String,
@@ -48,19 +48,19 @@ data class User(
     @Column(name = "permission")
     val permissions: Set<UserPermission>,
 
+    @Column(nullable = false)
+    private var enabled: Boolean = false,
+
+    @Column(nullable = false)
+    private var isAccountNonExpired: Boolean = true,
+
+    @Column(nullable = false)
+    private var isAccountNonLocked: Boolean = true,
+
+    @Column(nullable = false)
+    private var isCredentialNonExpired: Boolean = true,
+
     ) : UserDetails {
-
-    @Column(nullable = false)
-    private var enabled: Boolean = true
-
-    @Column(nullable = false)
-    private var isAccountNonExpired: Boolean = true
-
-    @Column(nullable = false)
-    private var isAccountNonLocked: Boolean = true
-
-    @Column(nullable = false)
-    private var isCredentialNonExpired: Boolean = true
 
     @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     var profile: Profile? = null
@@ -101,5 +101,10 @@ data class User(
     fun assignProfile(profile: Profile) {
         this.profile = profile
     }
+
+    fun getId(): UUID? {
+        return id
+    }
+
 }
 
