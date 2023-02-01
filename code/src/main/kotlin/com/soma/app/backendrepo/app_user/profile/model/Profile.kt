@@ -9,13 +9,14 @@ import jakarta.persistence.Column
 import jakarta.persistence.OneToOne
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.Table
+import java.util.UUID
 
 @Entity
 @Table(name = "profiles")
 data class Profile(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    @GeneratedValue(strategy = GenerationType.UUID)
+    val id: UUID? = null,
 
     @Column(nullable = false)
     val name: String,

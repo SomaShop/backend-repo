@@ -1,0 +1,17 @@
+package com.soma.app.backendrepo.error_handling
+
+enum class ErrorCode {
+    USER_NOT_FOUND,
+    USER_ALREADY_EXISTS,
+    USER_NOT_VERIFIED,
+    BAD_CREDENTIALS,
+    BAD_REQUEST,
+    INTERNAL_SERVER_ERROR,
+    INVALID_TOKEN,
+    TOKEN_EXPIRED,
+    TOKEN_NOT_FOUND,
+    FORBIDDEN,
+    UNAUTHORIZED,
+    EMAIL_ALREADY_EXISTS,
+    EMAIL_NOT_FOUND,
+}
