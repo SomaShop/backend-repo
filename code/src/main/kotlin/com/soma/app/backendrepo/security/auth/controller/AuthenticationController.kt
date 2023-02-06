@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestParam
 
 
 @RestController
@@ -18,7 +18,9 @@ class AuthenticationController(
 ) {
 
     @PostMapping("/register")
-    fun register(@RequestBody registrationRequest: RegistrationRequest): ApiResponse {
+    fun register(
+        @RequestBody registrationRequest: RegistrationRequest
+    ): ApiResponse {
         val apiResponse = authenticationService.register(registrationRequest)
         return when(apiResponse.error) {
             null -> {
@@ -40,7 +42,9 @@ class AuthenticationController(
     }
 
     @PostMapping("/login")
-    fun authenticateUser(@RequestBody authenticationRequest: AuthenticationRequest): ApiResponse {
+    fun authenticateUser(
+        @RequestBody authenticationRequest: AuthenticationRequest
+    ): ApiResponse {
         val response = authenticationService.login(authenticationRequest)
         return when(response.error) {
             null -> {
@@ -60,8 +64,8 @@ class AuthenticationController(
         }
     }
 
-    @PostMapping("/confirm-password/{token}")
-    fun confirmEmail(@PathVariable token: String): ApiResponse {
+    @PostMapping("/confirm-password")
+    fun confirmEmail(@RequestParam token: String): ApiResponse {
         val response = authenticationService.confirmEmail(token)
         return when (response.error) {
             null -> {

@@ -1,7 +1,7 @@
 package com.soma.app.backendrepo.config
 
-import com.soma.app.backendrepo.app_user.user.model.User
 import com.soma.app.backendrepo.security.JwtTokenProvider
+import com.soma.app.backendrepo.security.auth.service.AuthenticatedUserDetailsService
 import com.soma.app.backendrepo.utils.Logger
 import io.jsonwebtoken.io.IOException
 import jakarta.servlet.FilterChain
@@ -10,16 +10,22 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
+/**
+ * JwtAuthenticationFilter class is used to filter the request and validate the token.
+ * It extends OncePerRequestFilter class to ensure that the filter is only executed once per request.
+ * It implements doFilterInternal method to filter the request.
+ * It uses JwtTokenProvider to validate the token.
+ * It uses AuthenticatedUserDetailsService to load the user details.
+ */
 
 @Component
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
-    private val userDetailsService: UserDetailsService
+    private val authenticatedUserDetailsService: AuthenticatedUserDetailsService
 ) : OncePerRequestFilter() {
     private val log = Logger<JwtAuthenticationFilter>().getLogger()
     lateinit var jwt: String
@@ -44,14 +50,13 @@ class JwtAuthenticationFilter(
             log.info("Tag: JwtAuthenticationFilter, email: $username")
 
             if (username != null && SecurityContextHolder.getContext().authentication == null) {
-                val userDetails = userDetailsService.loadUserByUsername(username)
-                if (jwtTokenProvider.isTokenValid(jwt, userDetails)) {
+                val userDetails = authenticatedUserDetailsService.loadUserByUsername(username)
+                if (jwtTokenProvider.validRequest(jwt, userDetails)) {
                     val authentication = UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.authorities
                     )
-                    val user = userDetails as User
                     log.info("Tag: JwtAuthenticationFilter, is user Authenticated : ${authentication.isAuthenticated}")
-                    log.info("Tag: JwtAuthenticationFilter, user has role: ${user.role.name}")
+                    log.info("Tag: JwtAuthenticationFilter, user has role: ${userDetails.user.role.name}")
                     log.info("Tag: JwtAuthenticationFilter, Authenticated user has authorities : ${userDetails.authorities}")
                     authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                     SecurityContextHolder.getContext().authentication = authentication

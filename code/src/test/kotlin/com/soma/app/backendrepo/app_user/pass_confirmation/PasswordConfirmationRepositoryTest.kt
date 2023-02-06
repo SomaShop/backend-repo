@@ -25,16 +25,16 @@ class PasswordConfirmationRepositoryTest {
         lastName = "doe",
         email = "johndoe@example.com",
         password = "password",
-        role = UserRole.BUYER,
-        permissions = UserRole.BUYER.permissions
+        role = UserRole.CUSTOMER,
+        permissions = UserRole.CUSTOMER.permissions
     )
     private val user2 = User(
         firstName = "ali",
         lastName = "doe",
         email = "johndoe@example.com",
         password = "password",
-        role = UserRole.BUYER,
-        permissions = UserRole.BUYER.permissions
+        role = UserRole.CUSTOMER,
+        permissions = UserRole.CUSTOMER.permissions
     )
     private val token1 = "token1"
     private val token2 = "token2"

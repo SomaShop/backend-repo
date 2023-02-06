@@ -1,44 +1,39 @@
 package com.soma.app.backendrepo.app_user.user.model
 
 enum class AllowedPermissions(val permissions: Set<UserPermission>) {
-    BUYER(emptySet()),
+    CUSTOMER(
+        setOf(
+            UserPermission.PROFILE_MANAGEMENT_PERMISSION,
+            UserPermission.READ_PERMISSION,
+        )
+    ),
     MERCHANT(
         setOf(
-            UserPermission.READ_PRODUCT,
-            UserPermission.CREATE_PRODUCT,
-            UserPermission.UPDATE_PRODUCT,
-            UserPermission.DELETE_PRODUCT
+            UserPermission.MANAGE_PRODUCTS,
+            UserPermission.MANAGE_ORDERS,
+            UserPermission.PROFILE_MANAGEMENT_PERMISSION,
         )
     ),
     ADMIN(
         setOf(
-            UserPermission.READ_PRODUCT,
-            UserPermission.CREATE_PRODUCT,
-            UserPermission.UPDATE_PRODUCT,
-            UserPermission.DELETE_PRODUCT,
-            UserPermission.READ_USER,
-            UserPermission.CREATE_USER,
-            UserPermission.UPDATE_USER,
-            UserPermission.DELETE_USER
+            UserPermission.MANAGE_PRODUCTS,
+            UserPermission.MANAGE_USERS,
         ),
     )
 }
 
 enum class UserRole(val permissions: Set<UserPermission>) {
-    BUYER(AllowedPermissions.BUYER.permissions),
+    CUSTOMER(AllowedPermissions.CUSTOMER.permissions),
     MERCHANT(AllowedPermissions.MERCHANT.permissions),
     ADMIN(AllowedPermissions.ADMIN.permissions)
 }
 
 enum class UserPermission {
-    READ_PRODUCT,
-    CREATE_PRODUCT,
-    UPDATE_PRODUCT,
-    DELETE_PRODUCT,
-    READ_USER,
-    CREATE_USER,
-    UPDATE_USER,
-    DELETE_USER,
+    MANAGE_PRODUCTS,
+    MANAGE_USERS,
+    PROFILE_MANAGEMENT_PERMISSION,
+    MANAGE_ORDERS,
+    READ_PERMISSION,
 }
 
 

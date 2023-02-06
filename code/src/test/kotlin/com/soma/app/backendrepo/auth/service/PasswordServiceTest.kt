@@ -6,8 +6,8 @@ import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordCo
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationToken
 import com.soma.app.backendrepo.app_user.user.repository.UserRepository
 import com.soma.app.backendrepo.security.JwtTokenProvider
-import com.soma.app.backendrepo.security.auth.password.pojos.ResetPasswordRequest
-import com.soma.app.backendrepo.security.auth.password.service.PasswordService
+import com.soma.app.backendrepo.security.auth.reser_password.pojos.ResetPasswordRequest
+import com.soma.app.backendrepo.security.auth.reser_password.service.PasswordService
 import com.soma.app.backendrepo.app_user.dtos.JwtResetPasswordTokenResponse
 import org.junit.Assert
 import org.junit.Before
@@ -72,8 +72,8 @@ class PasswordServiceTest {
                 "lastName",
                 "user@example.com",
                 "password",
-                UserRole.BUYER,
-                UserRole.BUYER.permissions,
+                UserRole.CUSTOMER,
+                UserRole.CUSTOMER.permissions,
             ),
         )
         Mockito.`when`(userRepository.findByEmail(resetRequest.email)).thenReturn(user)
@@ -95,8 +95,8 @@ class PasswordServiceTest {
                 "lastName",
                 "user@example.com",
                 "password",
-                UserRole.BUYER,
-                UserRole.BUYER.permissions,
+                UserRole.CUSTOMER,
+                UserRole.CUSTOMER.permissions,
             )
         )
         val passwordConfirmationToken = Optional.of(
@@ -132,8 +132,8 @@ class PasswordServiceTest {
             "doe",
             "jane@example.com",
             "password",
-            UserRole.BUYER,
-            UserRole.BUYER.permissions,
+            UserRole.CUSTOMER,
+            UserRole.CUSTOMER.permissions,
         )
         val newPassword = "newpassword"
         val updatedPassUser = user.copy(password = newPassword)
@@ -144,7 +144,7 @@ class PasswordServiceTest {
 
         Mockito.verify(passwordEncoder, Mockito.times(1)).encode(newPassword)
         Mockito.verify(userRepository, Mockito.atLeastOnce()).save(updatedPassUser)
-        Assert.assertEquals(newPassword, updatedPassUser.password)
+        Assert.assertEquals(newPassword, updatedPassUser.getPassword())
     }
 
 
@@ -158,8 +158,8 @@ class PasswordServiceTest {
                 "lastName",
                 "user@example.com",
                 "password",
-                UserRole.BUYER,
-                UserRole.BUYER.permissions,
+                UserRole.CUSTOMER,
+                UserRole.CUSTOMER.permissions,
             )
         )
         Mockito.`when`(jwtTokenProvider.getEmailFromToken(token)).thenReturn("user@example.com")

@@ -1,5 +1,6 @@
 package com.soma.app.backendrepo.security
 
+import com.soma.app.backendrepo.app_user.user.model.AuthenticatedUser
 import com.soma.app.backendrepo.app_user.user.model.ClaimRoles
 import com.soma.app.backendrepo.app_user.user.model.User
 import com.soma.app.backendrepo.config.JwtProperties
@@ -12,11 +13,14 @@ import io.jsonwebtoken.UnsupportedJwtException
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import java.security.Key
 import java.security.SignatureException
 import java.util.Date
+
+/**
+ * This class is used to create and validate the JWT token for the user.
+ */
 
 @Service
 class JwtTokenProvider(
@@ -24,7 +28,7 @@ class JwtTokenProvider(
 ) {
     private val log = Logger<JwtTokenProvider>().getLogger()
     fun createToken(user: User): String {
-        val claims = Jwts.claims().setSubject(user.username)
+        val claims = Jwts.claims().setSubject(user.email)
         claims[ClaimRoles.Role.role] = user.role
         claims[ClaimRoles.Permission.role] = user.permissions
 
@@ -39,18 +43,19 @@ class JwtTokenProvider(
             .compact()
     }
 
-    fun isTokenValid(
+    fun validRequest(
         token: String,
-        userDetails: UserDetails,
+        authenticatedUser: AuthenticatedUser,
     ): Boolean {
         val userEmail = getEmailFromToken(token)
-        if (userEmail == userDetails.username
+        if (userEmail == authenticatedUser.username
             && validateToken(token)
             && !isTokenExpired(token)
+            && authenticatedUser.isEnabled
         ) {
             return true
         }
-        throw Exception("Could not validate Token")
+        throw Exception("Could not authenticate request")
     }
 
     fun isTokenExpired(token: String): Boolean {
@@ -116,7 +121,7 @@ class JwtTokenProvider(
         val tokenExpirationTime = 15 * 60 * 1000
         val claims = Jwts
             .claims()
-            .setSubject(user.username)
+            .setSubject(user.email)
 
         val now = Date()
         val expiryDate = Date(now.time + tokenExpirationTime)
