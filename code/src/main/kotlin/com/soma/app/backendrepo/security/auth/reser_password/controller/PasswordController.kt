@@ -1,20 +1,20 @@
-package com.soma.app.backendrepo.security.auth.password.controller
+package com.soma.app.backendrepo.security.auth.reser_password.controller
 
 import com.soma.app.backendrepo.app_user.dtos.JwtResetPasswordTokenResponse
 import com.soma.app.backendrepo.app_user.user.model.User
 import com.soma.app.backendrepo.error_handling.ApiResponse
 import com.soma.app.backendrepo.error_handling.Exception
 import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
-import com.soma.app.backendrepo.security.auth.password.pojos.ResetPasswordRequest
-import com.soma.app.backendrepo.security.auth.password.pojos.UpdatePasswordRequest
-import com.soma.app.backendrepo.security.auth.password.service.EmailService
-import com.soma.app.backendrepo.security.auth.password.service.PasswordService
+import com.soma.app.backendrepo.security.auth.reser_password.pojos.ResetPasswordRequest
+import com.soma.app.backendrepo.security.auth.reser_password.pojos.UpdatePasswordRequest
+import com.soma.app.backendrepo.security.auth.reser_password.service.EmailService
+import com.soma.app.backendrepo.security.auth.reser_password.service.PasswordService
 import com.soma.app.backendrepo.utils.Logger
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestParam
 
 @RestController
 @RequestMapping("/api/v1/reset")
@@ -71,9 +71,9 @@ class PasswordController(
         )
     }
 
-    @PostMapping("/update/{token}")
+    @PostMapping("/update")
     fun updatePassword(
-        @PathVariable token: String,
+        @RequestParam token: String,
         @RequestBody updateRequest: UpdatePasswordRequest
     ): ApiResponse {
         passwordService.findUser(token)?.let {

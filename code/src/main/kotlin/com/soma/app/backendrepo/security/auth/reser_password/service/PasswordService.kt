@@ -1,4 +1,4 @@
-package com.soma.app.backendrepo.security.auth.password.service
+package com.soma.app.backendrepo.security.auth.reser_password.service
 
 import com.soma.app.backendrepo.app_user.dtos.JwtResetPasswordTokenResponse
 import com.soma.app.backendrepo.app_user.user.model.User
@@ -9,11 +9,17 @@ import com.soma.app.backendrepo.error_handling.ApiResponse
 import com.soma.app.backendrepo.error_handling.Exception
 import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
 import com.soma.app.backendrepo.security.JwtTokenProvider
-import com.soma.app.backendrepo.security.auth.password.pojos.ResetPasswordRequest
+import com.soma.app.backendrepo.security.auth.reser_password.pojos.ResetPasswordRequest
 import com.soma.app.backendrepo.utils.Logger
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.util.Date
+
+/**
+ * This class is used to handle password reset requests from the user
+ * It validates the request and sends a reset password link to the user
+ * The link contains a jwt token which is used to verify the user
+ */
 
 @Service
 class PasswordService(
@@ -46,6 +52,11 @@ class PasswordService(
         }
     }
 
+    /**
+     * Generate a password reset token for the user
+     * if the password reset token is still valid, return the same token
+     * else generate a new token
+     */
     fun generatePasswordResetToken(user: User): ApiResponse {
         val userExists = passwordConfirmationService.findTokenByUser(user)
         logger.info("TAG: PasswordService: generatePasswordResetToken: reset password for user: $userExists")
@@ -71,6 +82,12 @@ class PasswordService(
             )
         )
     }
+
+    /**
+     * Update the user password
+     * if the user has a password reset token, update the token to empty
+     * so that the token can not be used again
+     */
 
     fun updatePassword(user: User, newPassword: String) {
         logger.info("TAG: PasswordService: updatePassword: user: $user")

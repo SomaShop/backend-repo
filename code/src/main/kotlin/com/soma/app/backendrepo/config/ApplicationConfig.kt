@@ -1,31 +1,25 @@
 package com.soma.app.backendrepo.config
 
-import com.soma.app.backendrepo.app_user.user.repository.UserRepository
-import com.soma.app.backendrepo.utils.Logger
+import com.soma.app.backendrepo.security.auth.service.AuthenticatedUserDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.ProviderManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
-import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.security.SecureRandom
 
+/**
+ * ApplicationConfig class is used to configure the beans for the application.
+ * It is used to configure the password encoder, authentication provider and authentication manager.
+ */
+
 @Configuration
 class ApplicationConfig(
-    private val userRepository: UserRepository,
+    private val authenticatedUserDetailsService: AuthenticatedUserDetailsService
 ) {
-    private final val logger = Logger<ApplicationConfig>().getLogger()
-    @Bean
-    fun userDetailsService(): UserDetailsService {
-        return UserDetailsService { email ->
-            userRepository.findByEmail(email)
-                .orElseThrow { UsernameNotFoundException("Could not find user with email: $email") }
-        }
-    }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
@@ -38,7 +32,7 @@ class ApplicationConfig(
     @Bean
     fun authenticationProvider(): AuthenticationProvider {
         val authProvider = DaoAuthenticationProvider()
-        authProvider.setUserDetailsService(userDetailsService())
+        authProvider.setUserDetailsService(authenticatedUserDetailsService)
         authProvider.setPasswordEncoder(passwordEncoder())
         return authProvider
     }

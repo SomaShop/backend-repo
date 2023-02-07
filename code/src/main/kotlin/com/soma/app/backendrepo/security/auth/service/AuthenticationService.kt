@@ -1,12 +1,15 @@
 package com.soma.app.backendrepo.security.auth.service
 
 import com.soma.app.backendrepo.app_user.dtos.JwtAuthenticateTokenResponse
-import com.soma.app.backendrepo.app_user.dtos.JwtRegistrationTokenResponse
+import com.soma.app.backendrepo.app_user.dtos.JwtRegistrationTokenResponseDTO
 import com.soma.app.backendrepo.app_user.dtos.PasswordConfirmationTokenDTO
 import com.soma.app.backendrepo.app_user.dtos.UserDTO
-import com.soma.app.backendrepo.app_user.profile.model.Profile
-import com.soma.app.backendrepo.app_user.profile.repository.ProfileRepository
+import com.soma.app.backendrepo.app_user.profile.customer.CustomerProfile
+import com.soma.app.backendrepo.app_user.profile.customer.CustomerProfileRepository
+import com.soma.app.backendrepo.app_user.profile.merchant.MerchantProfile
+import com.soma.app.backendrepo.app_user.profile.merchant.MerchantProfileRepository
 import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.app_user.user.model.UserRole
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationService
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationToken
 import com.soma.app.backendrepo.app_user.user.repository.UserRepository
@@ -15,20 +18,33 @@ import com.soma.app.backendrepo.error_handling.ApiResponse
 import com.soma.app.backendrepo.error_handling.Exception
 import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
 import com.soma.app.backendrepo.security.JwtTokenProvider
-import com.soma.app.backendrepo.security.auth.password.service.EmailService
+import com.soma.app.backendrepo.security.auth.reser_password.service.EmailService
 import com.soma.app.backendrepo.security.auth.pojos.AuthenticationRequest
 import com.soma.app.backendrepo.security.auth.pojos.RegistrationRequest
 import com.soma.app.backendrepo.utils.Logger
-import org.springframework.security.authentication.*
+import org.springframework.security.authentication.AccountExpiredException
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.authentication.CredentialsExpiredException
+import org.springframework.security.authentication.DisabledException
+import org.springframework.security.authentication.LockedException
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
+import java.util.Date
+
+/**
+ * This class is used to authenticate the user and generate a JWT token for the user.
+ * It also handles the registration of the user and the login of the user.
+ */
 
 @Service
 class AuthenticationService(
     private val userRepository: UserRepository,
-    private val profileRepository: ProfileRepository,
+    private val customerProfileRepository: CustomerProfileRepository,
+    private val merchantProfileRepository: MerchantProfileRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenProvider: JwtTokenProvider,
     private val authenticationManager: AuthenticationManager,
@@ -36,6 +52,14 @@ class AuthenticationService(
     private val emailService: EmailService,
     private val jwtProperties: JwtProperties
 ) {
+    private lateinit var customerProfile: CustomerProfile
+    private lateinit var merchantProfile: MerchantProfile
+    private lateinit var user: User
+    private lateinit var passwordConfirmationToken: PasswordConfirmationToken
+    // store associated user profile ID to be used in the profile update process
+    // on the frontend
+    private var associatedUserID: UUID? = null
+
     companion object {
         const val TAG = "AuthenticationService"
         val logger = Logger<AuthenticationService>().getLogger()
@@ -57,13 +81,7 @@ class AuthenticationService(
             }
 
             else -> {
-                val profile = Profile(
-                    name = registrationRequest.firstName,
-                    description = "I am ${registrationRequest.firstName}",
-                    address = "Somewhere in the world",
-                    phone = "0000000000",
-                )
-                val user = User(
+                user = User(
                     email = registrationRequest.email,
                     password = passwordEncoder.encode(registrationRequest.password),
                     firstName = registrationRequest.firstName,
@@ -71,16 +89,16 @@ class AuthenticationService(
                     role = registrationRequest.userRole,
                     permissions = registrationRequest.userRole.permissions
                 )
+                createUserProfile(registrationRequest.userRole)
                 val confirmPassWordToken = jwtTokenProvider.createConfirmPasswordToken(user)
                 val passwordTokenExpiresAt = jwtTokenProvider.getExpirationDateFromToken(confirmPassWordToken)
-                val passwordConfirmationToken = PasswordConfirmationToken(
+                passwordConfirmationToken = PasswordConfirmationToken(
                     token = confirmPassWordToken,
                     tokenExpiresAt = passwordTokenExpiresAt,
                     createdAt = Date(),
                     user = user
                 )
-                assign(user, profile)
-                save(user, profile, passwordConfirmationToken)
+                passwordConfirmationService.saveToken(passwordConfirmationToken)
                 val jwt = jwtTokenProvider.createToken(user)
                 val tokenExpiryDate = jwtTokenProvider.getExpirationDateFromToken(jwt)
                 val now = Date()
@@ -93,11 +111,12 @@ class AuthenticationService(
                 ApiResponse(
                     status = "200 OK",
                     error = null,
-                    data = JwtRegistrationTokenResponse(
+                    data = JwtRegistrationTokenResponseDTO(
                         jwt,
                         tokenExpiryDate,
                         passwordConfirmationTokenDTO,
                         refreshTokenExpiresAt = refreshTokenExpiresAt,
+                        associatedUserID = associatedUserID
                     )
                 )
             }
@@ -105,22 +124,37 @@ class AuthenticationService(
 
     }
 
-    private fun save(
-        user: User,
-        profile: Profile,
-        passwordConfirmationToken: PasswordConfirmationToken,
+    private fun createUserProfile(
+        userRole: UserRole
     ) {
-        userRepository.save(user)
-        profileRepository.save(profile)
-        passwordConfirmationService.saveToken(passwordConfirmationToken)
-    }
+        when (userRole) {
+            UserRole.CUSTOMER -> {
+                logger.info("Tag: $TAG, Message: Creating customer Profile")
+                customerProfile = CustomerProfile()
+                user = userRepository.save(user)
+                customerProfile.assignUser(user)
+                customerProfile = customerProfileRepository.save(customerProfile)
+                logger.info("Tag: $TAG, Message: customer Profile Created with ID: ${customerProfile.customerId}")
+                associatedUserID = customerProfile.customerId
+            }
 
-    private fun assign(
-        user: User,
-        profile: Profile
-    ) {
-        user.assignProfile(profile)
-        profile.assignUser(user)
+            UserRole.MERCHANT -> {
+                logger.info("Tag: $TAG, Message: Creating Merchant Profile")
+                merchantProfile = MerchantProfile()
+                user = userRepository.save(user)
+                merchantProfile.assignUser(user)
+                merchantProfile = merchantProfileRepository.save(merchantProfile)
+                logger.info("Tag: $TAG, Message: Merchant Profile Created with ID: ${merchantProfile.merchantId}")
+                associatedUserID = merchantProfile.merchantId
+            }
+
+            else -> {
+                logger.info("Tag: $TAG, Message: Creating Admin Profile")
+                user = userRepository.save(user)
+                logger.info("Tag: $TAG, Message: Admin Profile Created with ID: ${user.userID}")
+                associatedUserID = user.userID
+            }
+        }
     }
 
     fun login(authenticationRequest: AuthenticationRequest): ApiResponse {
@@ -133,16 +167,17 @@ class AuthenticationService(
                     authenticationRequest.password
                 )
             )
-
+            val associatedUserID = getAssociatedUserID(user.get())
             val jwt = jwtTokenProvider.createToken(user.get())
             val tokenExpiryDate = jwtTokenProvider.getExpirationDateFromToken(jwt)
             val refreshExpiry = Date(Date().time + jwtProperties.refreshExpirationTime)
-            val userDto = UserDTO.fromUser(user.get())
+            val userDto = UserDTO.fromUserEntity(user.get())
             val tokenResponseDTO = JwtAuthenticateTokenResponse(
                 jwt,
                 tokenExpiryDate,
                 userDto,
-                refreshExpiry
+                refreshExpiry,
+                associatedUserID
             )
             return ApiResponse(
                 status = "200 OK",
@@ -168,13 +203,24 @@ class AuthenticationService(
         }
     }
 
-    fun findByEmail(email: String): User {
-        val user = userRepository.findByEmail(email)
-        return when {
-            user.isEmpty || !user.isPresent -> throw Exception("User does not exist")
-            else -> user.get()
+     fun getAssociatedUserID(user: User) =
+        when (user.role) {
+            UserRole.CUSTOMER -> {
+                customerProfileRepository
+                    .findByUser(user)
+                    .get()
+                    .customerId
+            }
+
+            UserRole.MERCHANT -> {
+                merchantProfileRepository
+                    .findByUser(user)
+                    .get()
+                    .merchantId
+            }
+
+            else -> null
         }
-    }
 
     fun confirmEmail(token: String): ApiResponse {
         val passwordConfirmationToken = passwordConfirmationService.getToken(token)

@@ -21,8 +21,8 @@ class UserRepositoryTest {
         lastName = "doe",
         email = "john_doe@gmail.com",
         password = "password",
-        role = UserRole.BUYER,
-        permissions = UserRole.BUYER.permissions
+        role = UserRole.CUSTOMER,
+        permissions = UserRole.CUSTOMER.permissions
     )
 
     @Before
@@ -32,14 +32,14 @@ class UserRepositoryTest {
 
     @Test
     fun `when findByEmail then return user`() {
-        `when`(userRepository.findByEmail(user1.username))
+        `when`(userRepository.findByEmail(user1.email))
             .thenReturn(Optional.of(user1))
-        val found = userRepository.findByEmail(user1.username)
+        val found = userRepository.findByEmail(user1.email)
         Assert.assertTrue(found.isPresent)
-        Assert.assertEquals(found.get().username, user1.username)
+        Assert.assertEquals(found.get().email, user1.email)
         Assert.assertEquals(found.get().firstName, user1.firstName)
         Assert.assertEquals(found.get().lastName, user1.lastName)
-        Assert.assertEquals(found.get().password, user1.password)
+        Assert.assertEquals(found.get().getPassword(), user1.getPassword())
         Assert.assertEquals(found.get().role, user1.role)
         Assert.assertEquals(found.get().permissions, user1.permissions)
     }

@@ -2,7 +2,7 @@ package com.soma.app.backendrepo.auth.service
 
 import com.soma.app.backendrepo.app_user.user.model.User
 import com.soma.app.backendrepo.app_user.user.model.UserRole
-import com.soma.app.backendrepo.security.auth.password.service.EmailService
+import com.soma.app.backendrepo.security.auth.reser_password.service.EmailService
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,13 +26,13 @@ class EmailServiceTest {
             EmailService::class.java
         )
         user = User(
-            id = null,
+            userID = null,
             "firstName",
             "lastName",
             "user@example.com",
             "password",
-            UserRole.BUYER,
-            UserRole.BUYER.permissions,
+            UserRole.CUSTOMER,
+            UserRole.CUSTOMER.permissions,
         )
         token = "token"
     }
