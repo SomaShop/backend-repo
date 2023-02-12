@@ -1,11 +1,13 @@
 package com.soma.app.backendrepo.app_user.profile.merchant.pojo
 
+import com.soma.app.backendrepo.app_user.address.pojo.AddressData
+
 /**
  * Request body for updating merchant profile information such as address, phone, etc.
  *
  */
 
-data class MerchantProfileRequest(
+data class MerchantProfileData(
     val businessName: String? = null,
     val businessAddress: String? = null,
     val businessPhone: String? = null,

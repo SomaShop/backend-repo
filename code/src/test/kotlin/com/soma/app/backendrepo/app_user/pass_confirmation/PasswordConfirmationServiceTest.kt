@@ -1,6 +1,6 @@
 package com.soma.app.backendrepo.app_user.pass_confirmation
 
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import com.soma.app.backendrepo.app_user.user.model.UserRole
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationRepository
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationService
@@ -23,7 +23,7 @@ class PasswordConfirmationServiceTest {
     private lateinit var passwordConfirmationService: PasswordConfirmationService
 
     private lateinit var passwordConfirmationToken: PasswordConfirmationToken
-    private lateinit var user: User
+    private lateinit var userEntity: UserEntity
 
     @Before
     fun setUp() {
@@ -33,7 +33,7 @@ class PasswordConfirmationServiceTest {
         passwordConfirmationService = PasswordConfirmationService(
             passwordConfirmationRepository
         )
-        user = User(
+        userEntity = UserEntity(
             firstName = "John",
             lastName = "Doe",
             email = "john@gmail.com",
@@ -43,7 +43,7 @@ class PasswordConfirmationServiceTest {
         )
         passwordConfirmationToken = PasswordConfirmationToken(
             token = "token",
-            user = user
+            user = userEntity
         )
     }
 
@@ -72,16 +72,16 @@ class PasswordConfirmationServiceTest {
 
     @Test
     fun `verify that findByUser return correct password token`() {
-        `when`(passwordConfirmationRepository.findByUser(user))
+        `when`(passwordConfirmationRepository.findByUser(userEntity))
             .thenReturn(Optional.of(passwordConfirmationToken))
 
-        passwordConfirmationService.findTokenByUser(user)
+        passwordConfirmationService.findTokenByUser(userEntity)
 
         verify(passwordConfirmationRepository, atLeastOnce())
-            .findByUser(user)
+            .findByUser(userEntity)
 
         Assert.assertEquals(passwordConfirmationToken,
-            passwordConfirmationService.findTokenByUser(user).get())
+            passwordConfirmationService.findTokenByUser(userEntity).get())
     }
 
     @Test

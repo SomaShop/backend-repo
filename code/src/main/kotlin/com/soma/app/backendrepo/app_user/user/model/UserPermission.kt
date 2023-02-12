@@ -1,6 +1,6 @@
 package com.soma.app.backendrepo.app_user.user.model
 
-enum class AllowedPermissions(val permissions: Set<UserPermission>) {
+enum class Authorities(val permissions: Set<UserPermission>) {
     CUSTOMER(
         setOf(
             UserPermission.PROFILE_MANAGEMENT_PERMISSION,
@@ -23,9 +23,9 @@ enum class AllowedPermissions(val permissions: Set<UserPermission>) {
 }
 
 enum class UserRole(val permissions: Set<UserPermission>) {
-    ROLE_CUSTOMER(AllowedPermissions.CUSTOMER.permissions),
-    ROLE_MERCHANT(AllowedPermissions.MERCHANT.permissions),
-    ROLE_ADMIN(AllowedPermissions.ADMIN.permissions)
+    ROLE_CUSTOMER(Authorities.CUSTOMER.permissions),
+    ROLE_MERCHANT(Authorities.MERCHANT.permissions),
+    ROLE_ADMIN(Authorities.ADMIN.permissions)
 }
 
 enum class UserPermission {

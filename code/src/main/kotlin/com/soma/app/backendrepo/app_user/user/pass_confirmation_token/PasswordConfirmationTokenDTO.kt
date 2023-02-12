@@ -1,6 +1,6 @@
-package com.soma.app.backendrepo.app_user.dtos
+package com.soma.app.backendrepo.app_user.user.pass_confirmation_token
 
-import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationToken
+import com.soma.app.backendrepo.app_user.user.model.UserEntityDTO
 import java.util.Date
 import java.util.UUID
 
@@ -13,7 +13,7 @@ data class PasswordConfirmationTokenDTO(
     val id: UUID,
     val token: String,
     val token_expires_at: Date? = null,
-    val user: UserDTO,
+    val user: UserEntityDTO,
     val created_at: Date? = null,
     val confirmed_at: Date? = null,
 ) {
@@ -25,7 +25,7 @@ data class PasswordConfirmationTokenDTO(
                 id = passwordConfirmationToken.id!!,
                 token = passwordConfirmationToken.token,
                 token_expires_at = passwordConfirmationToken.tokenExpiresAt,
-                user = UserDTO.fromUserEntity(passwordConfirmationToken.user),
+                user = UserEntityDTO.fromUserEntity(passwordConfirmationToken.user),
                 created_at = passwordConfirmationToken.createdAt,
                 confirmed_at = passwordConfirmationToken.confirmedAt,
             )

@@ -1,6 +1,6 @@
 package com.soma.app.backendrepo.auth.service
 
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import com.soma.app.backendrepo.app_user.user.model.UserRole
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationService
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationToken
@@ -8,7 +8,7 @@ import com.soma.app.backendrepo.app_user.user.repository.UserRepository
 import com.soma.app.backendrepo.security.JwtTokenProvider
 import com.soma.app.backendrepo.security.auth.reser_password.pojos.ResetPasswordRequest
 import com.soma.app.backendrepo.security.auth.reser_password.service.PasswordService
-import com.soma.app.backendrepo.app_user.dtos.JwtResetPasswordTokenResponse
+import com.soma.app.backendrepo.security.auth.dto.JwtResetPasswordTokenResponse
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -65,8 +65,8 @@ class PasswordServiceTest {
     fun `validate Reset password Request should return the appropriate response`() {
         // Arrange
         val resetRequest = ResetPasswordRequest("user@example.com")
-        val user = Optional.of(
-            User(
+        val userEntity = Optional.of(
+            UserEntity(
                 UUID.randomUUID(),
                 "firstName",
                 "lastName",
@@ -76,20 +76,20 @@ class PasswordServiceTest {
                 UserRole.ROLE_CUSTOMER.permissions,
             ),
         )
-        Mockito.`when`(userRepository.findByEmail(resetRequest.email)).thenReturn(user)
+        Mockito.`when`(userRepository.findByEmail(resetRequest.email)).thenReturn(userEntity)
 
         // Act
         val result = passwordService
-            .validateResetRequest(resetRequest).data as User
+            .validateResetRequest(resetRequest).data as UserEntity
 
         // Assert
-        Assert.assertEquals(result, user.get())
+        Assert.assertEquals(result, userEntity.get())
     }
 
     @Test
     fun `generatePasswordResetToken should return the appropriate response`() {
-        val user = Optional.of(
-            User(
+        val userEntity = Optional.of(
+            UserEntity(
                 UUID.randomUUID(),
                 "firstName",
                 "lastName",
@@ -103,17 +103,17 @@ class PasswordServiceTest {
             PasswordConfirmationToken(
                 id = UUID.randomUUID(),
                 token = "token",
-                user = user.get(),
+                user = userEntity.get(),
             )
         )
         val token = "token"
         val expiryData = Date()
-        Mockito.`when`(passwordConfirmationService.findTokenByUser(user.get()))
+        Mockito.`when`(passwordConfirmationService.findTokenByUser(userEntity.get()))
             .thenReturn(passwordConfirmationToken)
         Mockito.`when`(jwtTokenProvider.getExpirationDateFromToken(token)).thenReturn(expiryData)
 
         val result = passwordService
-            .generatePasswordResetToken(user.get())
+            .generatePasswordResetToken(userEntity.get())
         val actual = result.data as JwtResetPasswordTokenResponse
         val expected = JwtResetPasswordTokenResponse(
             token,
@@ -126,7 +126,7 @@ class PasswordServiceTest {
 
     @Test
     fun `updatePassword should update the user's password`() {
-        val user = User(
+        val userEntity = UserEntity(
             UUID.randomUUID(),
             "jane",
             "doe",
@@ -136,11 +136,11 @@ class PasswordServiceTest {
             UserRole.ROLE_CUSTOMER.permissions,
         )
         val newPassword = "newpassword"
-        val updatedPassUser = user.copy(password = newPassword)
+        val updatedPassUser = userEntity.copy(password = newPassword)
         Mockito.`when`(passwordEncoder.encode(newPassword)).thenReturn(newPassword)
         Mockito.`when`(userRepository.save(updatedPassUser)).thenReturn(updatedPassUser)
 
-        passwordService.updatePassword(user, newPassword)
+        passwordService.updatePassword(userEntity, newPassword)
 
         Mockito.verify(passwordEncoder, Mockito.times(1)).encode(newPassword)
         Mockito.verify(userRepository, Mockito.atLeastOnce()).save(updatedPassUser)
@@ -151,8 +151,8 @@ class PasswordServiceTest {
     @Test
     fun `findUser should return the appropriate user`() {
         val token = "token"
-        val user = Optional.of(
-            User(
+        val userEntity = Optional.of(
+            UserEntity(
                 UUID.randomUUID(),
                 "firstName",
                 "lastName",
@@ -163,11 +163,11 @@ class PasswordServiceTest {
             )
         )
         Mockito.`when`(jwtTokenProvider.getEmailFromToken(token)).thenReturn("user@example.com")
-        Mockito.`when`(userRepository.findByEmail("user@example.com")).thenReturn(user)
+        Mockito.`when`(userRepository.findByEmail("user@example.com")).thenReturn(userEntity)
 
         val result = passwordService.findUser(token)
 
-        Assert.assertEquals(result, user.get())
+        Assert.assertEquals(result, userEntity.get())
     }
 
 }

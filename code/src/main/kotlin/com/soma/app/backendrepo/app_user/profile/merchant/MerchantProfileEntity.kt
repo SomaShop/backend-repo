@@ -1,11 +1,15 @@
 package com.soma.app.backendrepo.app_user.profile.merchant
 
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.fasterxml.jackson.annotation.JsonManagedReference
+import com.soma.app.backendrepo.app_user.address.entity.AddressEntity
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import java.util.UUID
@@ -18,13 +22,13 @@ import java.util.UUID
 
 @Entity
 @Table(name = "merchants_profile")
-data class MerchantProfile(
+data class MerchantProfileEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val merchantId: UUID? = null,
     val businessName: String? = null,
     val businessAddress: String? = null,
-    val businessPhone: String? = null,
+    val businessPhoneNumber: String? = null,
     val businessDescription: String? = null,
     val businessType: String? = null,
     val businessCategory: String? = null,
@@ -34,13 +38,34 @@ data class MerchantProfile(
     val businessLogo: String? = null,
     val businessCoverPhoto: String? = null,
 ) {
+
+    @JsonManagedReference
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "merchant_address_id")
+    private var addresses: MutableList<AddressEntity> = mutableListOf()
+
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private lateinit var user: User
+    private lateinit var user: UserEntity
 
-    fun assignUser(user: User) {
-        this.user = user
+    fun assignUser(userEntity: UserEntity) {
+        this.user = userEntity
     }
 
     fun getUser() = user
+
+    fun addAddress(address: AddressEntity) {
+        addresses.add(address)
+    }
+
+    fun removeMerchantAddress(addressId: UUID) {
+        addresses.removeIf { it.addressID == addressId }
+    }
+
+    fun updateMerchantAddresses(address: AddressEntity) {
+        val index = addresses.indexOfFirst { it.addressID == address.addressID }
+        addresses[index] = address
+    }
+
+    fun getAddresses() = addresses
 }

@@ -1,6 +1,6 @@
 package com.soma.app.backendrepo.auth.service
 
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import com.soma.app.backendrepo.app_user.user.model.UserRole
 import com.soma.app.backendrepo.security.auth.reser_password.service.EmailService
 import org.junit.Before
@@ -16,7 +16,7 @@ class EmailServiceTest {
     @Mock
     private lateinit var emailService: EmailService
 
-    private lateinit var user: User
+    private lateinit var userEntity: UserEntity
 
     private lateinit var token: String
 
@@ -25,7 +25,7 @@ class EmailServiceTest {
         emailService = mock(
             EmailService::class.java
         )
-        user = User(
+        userEntity = UserEntity(
             userID = null,
             "firstName",
             "lastName",
@@ -40,15 +40,15 @@ class EmailServiceTest {
     @Test
     fun `verify that sendPasswordResetEmail method is called`() {
         val token = "token"
-        emailService.sendPasswordResetEmail(user, token)
-        verify(emailService, atLeastOnce()).sendPasswordResetEmail(user, token)
+        emailService.sendPasswordResetEmail(userEntity, token)
+        verify(emailService, atLeastOnce()).sendPasswordResetEmail(userEntity, token)
     }
 
     @Test
     fun `verify that sendPasswordConfirmationEmail method is called with correct arguments`() {
 
-        emailService.sendPasswordConfirmationEmail(user, token)
-        verify(emailService, atLeastOnce()).sendPasswordConfirmationEmail(user, token)
+        emailService.sendPasswordConfirmationEmail(userEntity, token)
+        verify(emailService, atLeastOnce()).sendPasswordConfirmationEmail(userEntity, token)
     }
 
 

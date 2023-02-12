@@ -1,7 +1,7 @@
 package com.soma.app.backendrepo.security.auth.reser_password.controller
 
-import com.soma.app.backendrepo.app_user.dtos.JwtResetPasswordTokenResponse
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.security.auth.dto.JwtResetPasswordTokenResponse
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import com.soma.app.backendrepo.error_handling.ApiResponse
 import com.soma.app.backendrepo.error_handling.Exception
 import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
@@ -23,13 +23,13 @@ class PasswordController(
     private val emailService: EmailService
 ) {
 
-    val logger = Logger<PasswordController>().getLogger()
+    val logger = Logger.getLogger<PasswordController>()
 
     @PostMapping("/password")
     fun resetPassword(@RequestBody resetRequest: ResetPasswordRequest): ApiResponse {
         val resetRequestResponse = passwordService.validateResetRequest(resetRequest)
-        val user = when (resetRequestResponse.error) {
-            null -> (resetRequestResponse.data) as User
+        val userEntity = when (resetRequestResponse.error) {
+            null -> (resetRequestResponse.data) as UserEntity
             else -> {
                 val error = GlobalRequestErrorHandler.handleBadRequestException(
                     Exception(
@@ -43,7 +43,7 @@ class PasswordController(
                 )
             }
         }
-        val tokenResponse = passwordService.generatePasswordResetToken(user)
+        val tokenResponse = passwordService.generatePasswordResetToken(userEntity)
         val token = when (tokenResponse.error) {
             null -> (tokenResponse.data) as JwtResetPasswordTokenResponse
             else -> {
@@ -59,7 +59,7 @@ class PasswordController(
                 )
             }
         }
-        emailService.sendPasswordResetEmail(user, token.token)
+        emailService.sendPasswordResetEmail(userEntity, token.token)
         val metaData = mutableMapOf(
             "response" to token,
             "message" to "Password reset link sent to: ${resetRequest.email}"

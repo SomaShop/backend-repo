@@ -13,10 +13,10 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.util.Optional
 
 @SpringBootTest
-class UserRepositoryTest {
+class UserEntityRepositoryTest {
     @Mock
     lateinit var userRepository: UserRepository
-    private val user1 = UserEntity(
+    private val userEntity1 = UserEntity(
         firstName = "john",
         lastName = "doe",
         email = "john_doe@gmail.com",
@@ -32,15 +32,15 @@ class UserRepositoryTest {
 
     @Test
     fun `when findByEmail then return user`() {
-        `when`(userRepository.findByEmail(user1.email))
-            .thenReturn(Optional.of(user1))
-        val found = userRepository.findByEmail(user1.email)
+        `when`(userRepository.findByEmail(userEntity1.email))
+            .thenReturn(Optional.of(userEntity1))
+        val found = userRepository.findByEmail(userEntity1.email)
         Assert.assertTrue(found.isPresent)
-        Assert.assertEquals(found.get().email, user1.email)
-        Assert.assertEquals(found.get().firstName, user1.firstName)
-        Assert.assertEquals(found.get().lastName, user1.lastName)
-        Assert.assertEquals(found.get().getPassword(), user1.getPassword())
-        Assert.assertEquals(found.get().role, user1.role)
-        Assert.assertEquals(found.get().permissions, user1.permissions)
+        Assert.assertEquals(found.get().email, userEntity1.email)
+        Assert.assertEquals(found.get().firstName, userEntity1.firstName)
+        Assert.assertEquals(found.get().lastName, userEntity1.lastName)
+        Assert.assertEquals(found.get().getPassword(), userEntity1.getPassword())
+        Assert.assertEquals(found.get().role, userEntity1.role)
+        Assert.assertEquals(found.get().permissions, userEntity1.permissions)
     }
 }

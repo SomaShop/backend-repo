@@ -2,7 +2,7 @@ package com.soma.app.backendrepo.security
 
 import com.soma.app.backendrepo.app_user.user.model.AuthenticatedUser
 import com.soma.app.backendrepo.app_user.user.model.ClaimRoles
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import com.soma.app.backendrepo.config.JwtProperties
 import com.soma.app.backendrepo.utils.Logger
 import io.jsonwebtoken.ExpiredJwtException
@@ -26,11 +26,11 @@ import java.util.Date
 class JwtTokenProvider(
     private val jwtProperties: JwtProperties
 ) {
-    private val log = Logger<JwtTokenProvider>().getLogger()
-    fun createToken(user: User): String {
-        val claims = Jwts.claims().setSubject(user.email)
-        claims[ClaimRoles.Role.role] = user.role
-        claims[ClaimRoles.Permission.role] = user.permissions
+    private val log = Logger.getLogger<JwtTokenProvider>()
+    fun createToken(userEntity: UserEntity): String {
+        val claims = Jwts.claims().setSubject(userEntity.email)
+        claims[ClaimRoles.Role.role] = userEntity.role
+        claims[ClaimRoles.Permission.role] = userEntity.permissions
 
         val now = Date()
         val expiryDate = Date(now.time + jwtProperties.expirationTime)
@@ -117,11 +117,11 @@ class JwtTokenProvider(
             .body
     }
 
-    fun createConfirmPasswordToken(user: User): String {
+    fun createConfirmPasswordToken(userEntity: UserEntity): String {
         val tokenExpirationTime = 15 * 60 * 1000
         val claims = Jwts
             .claims()
-            .setSubject(user.email)
+            .setSubject(userEntity.email)
 
         val now = Date()
         val expiryDate = Date(now.time + tokenExpirationTime)

@@ -22,7 +22,7 @@ import java.util.UUID
 
 @Entity
 @Table(name = "users")
-data class User(
+data class UserEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val userID: UUID? = null,

@@ -1,7 +1,7 @@
 package com.soma.app.backendrepo.security.auth.reser_password.service
 
-import com.soma.app.backendrepo.app_user.dtos.JwtResetPasswordTokenResponse
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.security.auth.dto.JwtResetPasswordTokenResponse
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationService
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationToken
 import com.soma.app.backendrepo.app_user.user.repository.UserRepository
@@ -29,7 +29,7 @@ class PasswordService(
     private val passwordConfirmationService: PasswordConfirmationService
 ) {
     lateinit var token: String
-    val logger = Logger<PasswordService>().getLogger()
+    val logger = Logger.getLogger<PasswordService>()
 
     fun validateResetRequest(resetRequest: ResetPasswordRequest): ApiResponse {
         val user = userRepository.findByEmail(resetRequest.email)
@@ -57,18 +57,18 @@ class PasswordService(
      * if the password reset token is still valid, return the same token
      * else generate a new token
      */
-    fun generatePasswordResetToken(user: User): ApiResponse {
-        val userExists = passwordConfirmationService.findTokenByUser(user)
+    fun generatePasswordResetToken(userEntity: UserEntity): ApiResponse {
+        val userExists = passwordConfirmationService.findTokenByUser(userEntity)
         logger.info("TAG: PasswordService: generatePasswordResetToken: reset password for user: $userExists")
         token = if (userExists.isPresent) {
             val userToken = userExists.get()
             if (userToken.tokenExpiresAt?.before(Date()) == true || userToken.token.isEmpty()) {
-                jwtTokenProvider.createConfirmPasswordToken(user)
+                jwtTokenProvider.createConfirmPasswordToken(userEntity)
             } else {
                 userToken.token
             }
         } else {
-            jwtTokenProvider.createConfirmPasswordToken(user)
+            jwtTokenProvider.createConfirmPasswordToken(userEntity)
         }
 
         logger.info("TAG: PasswordService: generatePasswordResetToken: token: $token")
@@ -89,13 +89,13 @@ class PasswordService(
      * so that the token can not be used again
      */
 
-    fun updatePassword(user: User, newPassword: String) {
-        logger.info("TAG: PasswordService: updatePassword: user: $user")
-        val associatedUserToken = passwordConfirmationService.findTokenByUser(user)
+    fun updatePassword(userEntity: UserEntity, newPassword: String) {
+        logger.info("TAG: PasswordService: updatePassword: user: $userEntity")
+        val associatedUserToken = passwordConfirmationService.findTokenByUser(userEntity)
         logger.info("TAG: PasswordService: updatePassword: associatedUserToken: $associatedUserToken")
         val hashedPassword = passwordEncoder.encode(newPassword)
         val saveUserUpdatedPassword =
-            user.copy(password = hashedPassword)
+            userEntity.copy(password = hashedPassword)
         val updatedPasswordToken = when {
             associatedUserToken.isPresent -> {
                 val token = passwordConfirmationService.getToken(associatedUserToken.get().token)
@@ -123,7 +123,7 @@ class PasswordService(
         userRepository.save(saveUserUpdatedPassword)
     }
 
-    fun findUser(token: String): User? {
+    fun findUser(token: String): UserEntity? {
         val userName = jwtTokenProvider.getEmailFromToken(token)
         val user = userRepository.findByEmail(userName)
         logger.info("TAG: PasswordService: findUser: user: $user")

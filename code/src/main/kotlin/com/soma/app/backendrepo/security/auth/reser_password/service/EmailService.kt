@@ -1,6 +1,6 @@
 package com.soma.app.backendrepo.security.auth.reser_password.service
 
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import com.soma.app.backendrepo.utils.Logger
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
@@ -14,10 +14,10 @@ import org.springframework.stereotype.Service
 class EmailService(
     private val javaMailSender: JavaMailSender
 ) {
-    val logger = Logger<EmailService>().getLogger()
-    fun sendPasswordResetEmail(user: User, token: String) {
+    val logger = Logger.getLogger<EmailService>()
+    fun sendPasswordResetEmail(userEntity: UserEntity, token: String) {
         val message = SimpleMailMessage()
-        message.setTo(user.email)
+        message.setTo(userEntity.email)
         message.subject = "Password reset request"
         //TODO: update the password reset url in production
         message.text = "To reset your password, please click the link below:\n" +
@@ -28,9 +28,9 @@ class EmailService(
         logger.info("TAG: EmailService: sendPasswordResetEmail: message: mail sent successfully")
     }
 
-    fun sendPasswordConfirmationEmail(user: User, token: String) {
+    fun sendPasswordConfirmationEmail(userEntity: UserEntity, token: String) {
         val message = SimpleMailMessage()
-        message.setTo(user.email)
+        message.setTo(userEntity.email)
         message.subject = "Password confirmation request"
 
         //TODO: update the password confirmation url in production

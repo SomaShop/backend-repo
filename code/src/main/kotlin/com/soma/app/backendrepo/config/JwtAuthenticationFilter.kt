@@ -27,7 +27,7 @@ class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
     private val authenticatedUserDetailsService: AuthenticatedUserDetailsService
 ) : OncePerRequestFilter() {
-    private val log = Logger<JwtAuthenticationFilter>().getLogger()
+    private val log = Logger.getLogger<JwtAuthenticationFilter>()
     lateinit var jwt: String
 
     @Throws(ServletException::class, IOException::class)
@@ -56,7 +56,7 @@ class JwtAuthenticationFilter(
                         userDetails, null, userDetails.authorities
                     )
                     log.info("Tag: JwtAuthenticationFilter, is user Authenticated : ${authentication.isAuthenticated}")
-                    log.info("Tag: JwtAuthenticationFilter, user has role: ${userDetails.user.role.name}")
+                    log.info("Tag: JwtAuthenticationFilter, user has role: ${userDetails.userEntity.role.name}")
                     log.info("Tag: JwtAuthenticationFilter, Authenticated user has authorities : ${userDetails.authorities}")
                     authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                     SecurityContextHolder.getContext().authentication = authentication
