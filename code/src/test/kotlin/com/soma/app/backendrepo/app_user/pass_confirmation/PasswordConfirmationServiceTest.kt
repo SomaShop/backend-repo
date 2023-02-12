@@ -38,8 +38,8 @@ class PasswordConfirmationServiceTest {
             lastName = "Doe",
             email = "john@gmail.com",
             password = "password",
-            role = UserRole.CUSTOMER,
-            permissions = UserRole.CUSTOMER.permissions
+            role = UserRole.ROLE_CUSTOMER,
+            permissions = UserRole.ROLE_CUSTOMER.permissions
         )
         passwordConfirmationToken = PasswordConfirmationToken(
             token = "token",

@@ -31,8 +31,8 @@ class EmailServiceTest {
             "lastName",
             "user@example.com",
             "password",
-            UserRole.CUSTOMER,
-            UserRole.CUSTOMER.permissions,
+            UserRole.ROLE_CUSTOMER,
+            UserRole.ROLE_CUSTOMER.permissions,
         )
         token = "token"
     }

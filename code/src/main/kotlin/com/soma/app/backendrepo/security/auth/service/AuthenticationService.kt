@@ -128,7 +128,7 @@ class AuthenticationService(
         userRole: UserRole
     ) {
         when (userRole) {
-            UserRole.CUSTOMER -> {
+            UserRole.ROLE_CUSTOMER -> {
                 logger.info("Tag: $TAG, Message: Creating customer Profile")
                 customerProfile = CustomerProfile()
                 user = userRepository.save(user)
@@ -138,7 +138,7 @@ class AuthenticationService(
                 associatedUserID = customerProfile.customerId
             }
 
-            UserRole.MERCHANT -> {
+            UserRole.ROLE_MERCHANT -> {
                 logger.info("Tag: $TAG, Message: Creating Merchant Profile")
                 merchantProfile = MerchantProfile()
                 user = userRepository.save(user)
@@ -205,14 +205,14 @@ class AuthenticationService(
 
      fun getAssociatedUserID(user: User) =
         when (user.role) {
-            UserRole.CUSTOMER -> {
+            UserRole.ROLE_CUSTOMER -> {
                 customerProfileRepository
                     .findByUser(user)
                     .get()
                     .customerId
             }
 
-            UserRole.MERCHANT -> {
+            UserRole.ROLE_MERCHANT -> {
                 merchantProfileRepository
                     .findByUser(user)
                     .get()
