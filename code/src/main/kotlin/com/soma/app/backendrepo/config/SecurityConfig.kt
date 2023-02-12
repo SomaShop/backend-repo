@@ -4,6 +4,7 @@ import com.soma.app.backendrepo.security.auth.service.AuthenticatedUserDetailsSe
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationProvider
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val authenticationProvider: AuthenticationProvider,
@@ -33,9 +35,9 @@ class SecurityConfig(
                 auth
                     .requestMatchers("/api/v1/auth/**")
                     .permitAll()
-                    // TODO: need to figure out how to grant access to the following
-                    //  TODO: endpoints only to the merchant user
-//                    .requestMatchers("/api/v1/merchantProfile/**").hasRole(UserRole.MERCHANT.name)
+                    .requestMatchers("/api/v1/merchant/**").hasAuthority("ROLE_MERCHANT")
+                    .requestMatchers("/api/v1/customer/**").hasAuthority("ROLE_CUSTOMER")
+                    .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN")
                     .anyRequest()
                     .authenticated()
                     .and()

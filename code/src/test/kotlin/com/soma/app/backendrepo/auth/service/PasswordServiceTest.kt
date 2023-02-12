@@ -72,8 +72,8 @@ class PasswordServiceTest {
                 "lastName",
                 "user@example.com",
                 "password",
-                UserRole.CUSTOMER,
-                UserRole.CUSTOMER.permissions,
+                UserRole.ROLE_CUSTOMER,
+                UserRole.ROLE_CUSTOMER.permissions,
             ),
         )
         Mockito.`when`(userRepository.findByEmail(resetRequest.email)).thenReturn(user)
@@ -95,8 +95,8 @@ class PasswordServiceTest {
                 "lastName",
                 "user@example.com",
                 "password",
-                UserRole.CUSTOMER,
-                UserRole.CUSTOMER.permissions,
+                UserRole.ROLE_CUSTOMER,
+                UserRole.ROLE_CUSTOMER.permissions,
             )
         )
         val passwordConfirmationToken = Optional.of(
@@ -132,8 +132,8 @@ class PasswordServiceTest {
             "doe",
             "jane@example.com",
             "password",
-            UserRole.CUSTOMER,
-            UserRole.CUSTOMER.permissions,
+            UserRole.ROLE_CUSTOMER,
+            UserRole.ROLE_CUSTOMER.permissions,
         )
         val newPassword = "newpassword"
         val updatedPassUser = user.copy(password = newPassword)
@@ -158,8 +158,8 @@ class PasswordServiceTest {
                 "lastName",
                 "user@example.com",
                 "password",
-                UserRole.CUSTOMER,
-                UserRole.CUSTOMER.permissions,
+                UserRole.ROLE_CUSTOMER,
+                UserRole.ROLE_CUSTOMER.permissions,
             )
         )
         Mockito.`when`(jwtTokenProvider.getEmailFromToken(token)).thenReturn("user@example.com")

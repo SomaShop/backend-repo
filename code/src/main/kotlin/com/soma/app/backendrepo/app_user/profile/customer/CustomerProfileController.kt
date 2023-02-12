@@ -3,6 +3,7 @@ package com.soma.app.backendrepo.app_user.profile.customer
 import com.soma.app.backendrepo.app_user.profile.customer.pojo.CustomerProfileRequest
 import com.soma.app.backendrepo.app_user.user.model.AuthenticatedUser
 import com.soma.app.backendrepo.error_handling.ApiResponse
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -18,11 +19,12 @@ import java.util.UUID
  */
 
 @RestController
-@RequestMapping("/api/v1/customerProfile")
+@RequestMapping("/api/v1/customer")
+@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 class CustomerProfileController(
     private val customerProfileService: CustomerProfileService
 ) {
-    @GetMapping
+    @GetMapping("/profile")
     fun getCustomerProfile(
         @AuthenticationPrincipal authenticationPrincipal: AuthenticatedUser
     ): ApiResponse {
@@ -41,7 +43,7 @@ class CustomerProfileController(
         }
     }
 
-    @PutMapping("/update")
+    @PutMapping("/profile/update")
     fun updateCustomerProfile(
         @AuthenticationPrincipal authenticationPrincipal: AuthenticatedUser,
         @RequestParam customerId: UUID,

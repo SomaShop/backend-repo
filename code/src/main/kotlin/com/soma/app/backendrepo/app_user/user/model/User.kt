@@ -71,9 +71,4 @@ data class User(
 
 }
 
-// extension function to check if a user has a specific role
-
-fun User.isMerchant() = this.role == UserRole.MERCHANT
-fun User.isCustomer() = this.role == UserRole.CUSTOMER
-
 

@@ -3,7 +3,6 @@ package com.soma.app.backendrepo.app_user.profile.customer
 import com.soma.app.backendrepo.app_user.dtos.CustomerProfileDTO
 import com.soma.app.backendrepo.app_user.profile.customer.pojo.CustomerProfileRequest
 import com.soma.app.backendrepo.app_user.user.model.User
-import com.soma.app.backendrepo.app_user.user.model.isCustomer
 import com.soma.app.backendrepo.error_handling.ApiResponse
 import com.soma.app.backendrepo.error_handling.Exception
 import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
@@ -36,17 +35,6 @@ class CustomerProfileService(
                     error = error.responseData
                 )
             }
-            !user.isCustomer() -> {
-                val error = GlobalRequestErrorHandler.handleForbiddenException(
-                    Exception(
-                        "You are not authorized to access this resource"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
-            }
             else -> {
                 val customerProfileDTO = CustomerProfileDTO.fromCustomerProfileEntity(
                     customerProfile.get()
@@ -67,17 +55,6 @@ class CustomerProfileService(
     ): ApiResponse {
         val profile = customerProfileRepository.findByCustomerId(id)
         return when {
-            !user.isCustomer() -> {
-                val error = GlobalRequestErrorHandler.handleForbiddenException(
-                    Exception(
-                        "You are not authorized to access this resource"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
-            }
             !profile.isPresent -> {
                 val error = GlobalRequestErrorHandler.handleUserNotFoundException(
                     Exception(

@@ -21,8 +21,8 @@ class UserRepositoryTest {
         lastName = "doe",
         email = "john_doe@gmail.com",
         password = "password",
-        role = UserRole.CUSTOMER,
-        permissions = UserRole.CUSTOMER.permissions
+        role = UserRole.ROLE_CUSTOMER,
+        permissions = UserRole.ROLE_CUSTOMER.permissions
     )
 
     @Before

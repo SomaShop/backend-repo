@@ -23,9 +23,9 @@ enum class AllowedPermissions(val permissions: Set<UserPermission>) {
 }
 
 enum class UserRole(val permissions: Set<UserPermission>) {
-    CUSTOMER(AllowedPermissions.CUSTOMER.permissions),
-    MERCHANT(AllowedPermissions.MERCHANT.permissions),
-    ADMIN(AllowedPermissions.ADMIN.permissions)
+    ROLE_CUSTOMER(AllowedPermissions.CUSTOMER.permissions),
+    ROLE_MERCHANT(AllowedPermissions.MERCHANT.permissions),
+    ROLE_ADMIN(AllowedPermissions.ADMIN.permissions)
 }
 
 enum class UserPermission {

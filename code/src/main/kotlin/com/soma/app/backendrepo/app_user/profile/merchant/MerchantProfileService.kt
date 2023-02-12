@@ -3,7 +3,6 @@ package com.soma.app.backendrepo.app_user.profile.merchant
 import com.soma.app.backendrepo.app_user.dtos.MerchantProfileDTO
 import com.soma.app.backendrepo.app_user.profile.merchant.pojo.MerchantProfileRequest
 import com.soma.app.backendrepo.app_user.user.model.User
-import com.soma.app.backendrepo.app_user.user.model.isMerchant
 import com.soma.app.backendrepo.error_handling.ApiResponse
 import com.soma.app.backendrepo.error_handling.Exception
 import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
@@ -24,19 +23,25 @@ class MerchantProfileService(
 ) {
     fun getMerchantProfile(user: User): ApiResponse {
         val merchantProfile = merchantProfileRepository.findByUser(user)
-        if (!user.isMerchant() || !merchantProfile.isPresent) {
-            val error = GlobalRequestErrorHandler.handleUnauthorizedException(
-                Exception(
-                    "You are not authorized to access this resource"
+        return when {
+            !merchantProfile.isPresent -> {
+                val error = GlobalRequestErrorHandler.handleUserNotFoundException(
+                    Exception(
+                        errorMessage = "Merchant profile not found",
+                    )
                 )
-            )
-            return ApiResponse(
-                status = error.statusCode.name,
-                error = error.responseData
-            )
+                ApiResponse(
+                    status = error.statusCode.name,
+                    error = error.responseData
+                )
+            }
+            else -> {
+                val merchantProfileDTO = MerchantProfileDTO.fromMerchantProfileEntity(
+                    merchantProfile.get()
+                )
+                return ApiResponse("200 OK",merchantProfileDTO)
+            }
         }
-        val merchantProfileDTO = MerchantProfileDTO.fromMerchantProfileEntity(merchantProfile.get())
-        return ApiResponse("200 OK",merchantProfileDTO)
     }
 
     @Transactional
@@ -47,18 +52,6 @@ class MerchantProfileService(
     ): ApiResponse {
         val profile = merchantProfileRepository.findByMerchantId(id)
         when {
-            !user.isMerchant() -> {
-                val error = GlobalRequestErrorHandler.handleUnauthorizedException(
-                    Exception(
-                        "You are not authorized to access this resource"
-                    )
-                )
-                return ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
-            }
-
             !profile.isPresent -> {
                 val error = GlobalRequestErrorHandler.handleUserNotFoundException(
                     Exception(

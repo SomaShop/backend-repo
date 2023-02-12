@@ -4,6 +4,7 @@ import com.soma.app.backendrepo.app_user.profile.merchant.pojo.MerchantProfileRe
 import com.soma.app.backendrepo.app_user.user.model.AuthenticatedUser
 import com.soma.app.backendrepo.error_handling.ApiResponse
 import com.soma.app.backendrepo.utils.Logger
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -20,13 +21,14 @@ import java.util.UUID
 
 
 @RestController
-@RequestMapping("/api/v1/merchantProfile")
+@RequestMapping("/api/v1/merchant")
+@PreAuthorize("hasRole('ROLE_MERCHANT')")
 class MerchantProfileController(
     private val merchantProfileService: MerchantProfileService,
 ) {
     val logger = Logger<MerchantProfileController>().getLogger()
 
-    @GetMapping
+    @GetMapping("/profile")
     fun getMerchantProfile(@AuthenticationPrincipal authenticationPrincipal: AuthenticatedUser): ApiResponse {
         logger.info("TAG: MerchantProfileController - getMerchantProfile() message: ${authenticationPrincipal.user.email}")
         val apiResponse = merchantProfileService.getMerchantProfile(authenticationPrincipal.user)
@@ -48,7 +50,7 @@ class MerchantProfileController(
         }
     }
 
-    @PutMapping("/update")
+    @PutMapping("/profile/update")
     fun updateMerchantProfile(
         @RequestParam merchantId: UUID,
         @RequestBody updateRequest: MerchantProfileRequest,
