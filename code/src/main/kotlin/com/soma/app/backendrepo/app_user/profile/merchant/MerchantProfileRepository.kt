@@ -1,6 +1,6 @@
 package com.soma.app.backendrepo.app_user.profile.merchant
 
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.UUID
 import java.util.Optional
@@ -10,7 +10,7 @@ import java.util.Optional
  * This repository is used to interact with the database.
  */
 
-interface MerchantProfileRepository : JpaRepository<MerchantProfile, UUID> {
-    fun findByMerchantId(merchantId: UUID): Optional<MerchantProfile>
-    fun findByUser(user: User): Optional<MerchantProfile>
+interface MerchantProfileRepository : JpaRepository<MerchantProfileEntity, UUID> {
+    fun findByMerchantId(merchantId: UUID): Optional<MerchantProfileEntity>
+    fun findByUser(user: UserEntity): Optional<MerchantProfileEntity>
 }

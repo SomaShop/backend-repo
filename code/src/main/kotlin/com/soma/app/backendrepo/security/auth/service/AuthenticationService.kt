@@ -1,23 +1,23 @@
 package com.soma.app.backendrepo.security.auth.service
 
-import com.soma.app.backendrepo.app_user.dtos.JwtAuthenticateTokenResponse
-import com.soma.app.backendrepo.app_user.dtos.JwtRegistrationTokenResponseDTO
-import com.soma.app.backendrepo.app_user.dtos.PasswordConfirmationTokenDTO
-import com.soma.app.backendrepo.app_user.dtos.UserDTO
-import com.soma.app.backendrepo.app_user.profile.customer.CustomerProfile
+import com.soma.app.backendrepo.app_user.profile.customer.CustomerProfileEntity
 import com.soma.app.backendrepo.app_user.profile.customer.CustomerProfileRepository
-import com.soma.app.backendrepo.app_user.profile.merchant.MerchantProfile
+import com.soma.app.backendrepo.app_user.profile.merchant.MerchantProfileEntity
 import com.soma.app.backendrepo.app_user.profile.merchant.MerchantProfileRepository
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.app_user.user.model.UserEntityDTO
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import com.soma.app.backendrepo.app_user.user.model.UserRole
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationService
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationToken
+import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationTokenDTO
 import com.soma.app.backendrepo.app_user.user.repository.UserRepository
 import com.soma.app.backendrepo.config.JwtProperties
 import com.soma.app.backendrepo.error_handling.ApiResponse
 import com.soma.app.backendrepo.error_handling.Exception
 import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
 import com.soma.app.backendrepo.security.JwtTokenProvider
+import com.soma.app.backendrepo.security.auth.dto.JwtAuthenticateTokenResponse
+import com.soma.app.backendrepo.security.auth.dto.JwtRegistrationTokenResponseDTO
 import com.soma.app.backendrepo.security.auth.reser_password.service.EmailService
 import com.soma.app.backendrepo.security.auth.pojos.AuthenticationRequest
 import com.soma.app.backendrepo.security.auth.pojos.RegistrationRequest
@@ -52,9 +52,9 @@ class AuthenticationService(
     private val emailService: EmailService,
     private val jwtProperties: JwtProperties
 ) {
-    private lateinit var customerProfile: CustomerProfile
-    private lateinit var merchantProfile: MerchantProfile
-    private lateinit var user: User
+    private lateinit var customerProfile: CustomerProfileEntity
+    private lateinit var merchantProfile: MerchantProfileEntity
+    private lateinit var user: UserEntity
     private lateinit var passwordConfirmationToken: PasswordConfirmationToken
     // store associated user profile ID to be used in the profile update process
     // on the frontend
@@ -62,7 +62,7 @@ class AuthenticationService(
 
     companion object {
         const val TAG = "AuthenticationService"
-        val logger = Logger<AuthenticationService>().getLogger()
+        val logger = Logger.getLogger<AuthenticationService>()
     }
 
     fun register(registrationRequest: RegistrationRequest): ApiResponse {
@@ -81,7 +81,7 @@ class AuthenticationService(
             }
 
             else -> {
-                user = User(
+                user = UserEntity(
                     email = registrationRequest.email,
                     password = passwordEncoder.encode(registrationRequest.password),
                     firstName = registrationRequest.firstName,
@@ -130,7 +130,7 @@ class AuthenticationService(
         when (userRole) {
             UserRole.ROLE_CUSTOMER -> {
                 logger.info("Tag: $TAG, Message: Creating customer Profile")
-                customerProfile = CustomerProfile()
+                customerProfile = CustomerProfileEntity()
                 user = userRepository.save(user)
                 customerProfile.assignUser(user)
                 customerProfile = customerProfileRepository.save(customerProfile)
@@ -140,7 +140,7 @@ class AuthenticationService(
 
             UserRole.ROLE_MERCHANT -> {
                 logger.info("Tag: $TAG, Message: Creating Merchant Profile")
-                merchantProfile = MerchantProfile()
+                merchantProfile = MerchantProfileEntity()
                 user = userRepository.save(user)
                 merchantProfile.assignUser(user)
                 merchantProfile = merchantProfileRepository.save(merchantProfile)
@@ -171,11 +171,11 @@ class AuthenticationService(
             val jwt = jwtTokenProvider.createToken(user.get())
             val tokenExpiryDate = jwtTokenProvider.getExpirationDateFromToken(jwt)
             val refreshExpiry = Date(Date().time + jwtProperties.refreshExpirationTime)
-            val userDto = UserDTO.fromUserEntity(user.get())
+            val userEntityDto = UserEntityDTO.fromUserEntity(user.get())
             val tokenResponseDTO = JwtAuthenticateTokenResponse(
                 jwt,
                 tokenExpiryDate,
-                userDto,
+                userEntityDto,
                 refreshExpiry,
                 associatedUserID
             )
@@ -203,7 +203,7 @@ class AuthenticationService(
         }
     }
 
-     fun getAssociatedUserID(user: User) =
+     fun getAssociatedUserID(user: UserEntity) =
         when (user.role) {
             UserRole.ROLE_CUSTOMER -> {
                 customerProfileRepository

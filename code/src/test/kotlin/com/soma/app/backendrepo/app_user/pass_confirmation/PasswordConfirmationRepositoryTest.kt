@@ -1,6 +1,6 @@
 package com.soma.app.backendrepo.app_user.pass_confirmation
 
-import com.soma.app.backendrepo.app_user.user.model.User
+import com.soma.app.backendrepo.app_user.user.model.UserEntity
 import com.soma.app.backendrepo.app_user.user.model.UserRole
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationRepository
 import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationToken
@@ -20,7 +20,7 @@ class PasswordConfirmationRepositoryTest {
     @Mock
     private lateinit var repository: PasswordConfirmationRepository
 
-    private val user1 = User(
+    private val userEntity1 = UserEntity(
         firstName = "john",
         lastName = "doe",
         email = "johndoe@example.com",
@@ -28,7 +28,7 @@ class PasswordConfirmationRepositoryTest {
         role = UserRole.ROLE_CUSTOMER,
         permissions = UserRole.ROLE_CUSTOMER.permissions
     )
-    private val user2 = User(
+    private val userEntity2 = UserEntity(
         firstName = "ali",
         lastName = "doe",
         email = "johndoe@example.com",
@@ -38,8 +38,8 @@ class PasswordConfirmationRepositoryTest {
     )
     private val token1 = "token1"
     private val token2 = "token2"
-    private val passwordConfirmationToken1 = PasswordConfirmationToken(token = token1, user = user1)
-    private val passwordConfirmationToken2 = PasswordConfirmationToken(token = token2, user = user2)
+    private val passwordConfirmationToken1 = PasswordConfirmationToken(token = token1, user = userEntity1)
+    private val passwordConfirmationToken2 = PasswordConfirmationToken(token = token2, user = userEntity2)
 
     @Before
     fun setUp() {
@@ -54,17 +54,17 @@ class PasswordConfirmationRepositoryTest {
         val found = repository.findByToken(token1)
         Assert.assertTrue(found.isPresent)
         Assert.assertEquals(found.get().token, token1)
-        Assert.assertEquals(found.get().user, user1)
+        Assert.assertEquals(found.get().user, userEntity1)
     }
 
     @Test
     fun `when findByUser then return password confirmation token`() {
-        `when`(repository.findByUser(user2))
+        `when`(repository.findByUser(userEntity2))
             .thenReturn(Optional.of(passwordConfirmationToken2))
-        val found = repository.findByUser(user2)
+        val found = repository.findByUser(userEntity2)
         Assert.assertTrue(found.isPresent)
         Assert.assertEquals(found.get().token, token2)
-        Assert.assertEquals(found.get().user, user2)
+        Assert.assertEquals(found.get().user, userEntity2)
     }
 }
 

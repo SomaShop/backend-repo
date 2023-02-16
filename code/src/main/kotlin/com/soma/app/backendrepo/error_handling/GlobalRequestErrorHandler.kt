@@ -58,8 +58,8 @@ class GlobalRequestErrorHandler {
            return CustomResponseEntity.conflict(value = error)
        }
 
-       fun handleEmailAlreadyExistsException(ex: Exception): ResponseEntity<ErrorResponse> {
-           val error = ErrorResponse(ErrorCode.EMAIL_ALREADY_EXISTS.name, ex.message)
+       fun handleAddressAlreadyExistsException(ex: Exception): ResponseEntity<ErrorResponse> {
+           val error = ErrorResponse(ErrorCode.ADDRESS_ALREADY_EXISTS.name, ex.message)
            return CustomResponseEntity.conflict(value = error)
        }
 

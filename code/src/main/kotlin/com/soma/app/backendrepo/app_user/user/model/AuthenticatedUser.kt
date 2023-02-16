@@ -11,16 +11,16 @@ import org.springframework.security.core.userdetails.UserDetails
  */
 
 data class AuthenticatedUser(
-    val user: User
+    val userEntity: UserEntity
 ) : UserDetails {
     override fun getAuthorities(): MutableCollection<out GrantedAuthority>? {
-        return mutableListOf(SimpleGrantedAuthority(user.role.name))
+        return mutableListOf(SimpleGrantedAuthority(userEntity.role.name))
     }
 
-    override fun getPassword() = user.getPassword()
-    override fun getUsername() = user.email
-    override fun isAccountNonExpired() = user.isAccountNonExpired()
-    override fun isAccountNonLocked() = user.isAccountNonLocked()
-    override fun isCredentialsNonExpired() = user.isCredentialsNonExpired()
-    override fun isEnabled() = user.isEnabled()
+    override fun getPassword() = userEntity.getPassword()
+    override fun getUsername() = userEntity.email
+    override fun isAccountNonExpired() = userEntity.isAccountNonExpired()
+    override fun isAccountNonLocked() = userEntity.isAccountNonLocked()
+    override fun isCredentialsNonExpired() = userEntity.isCredentialsNonExpired()
+    override fun isEnabled() = userEntity.isEnabled()
 }
