@@ -1,5 +1,6 @@
 package com.soma.app.backendrepo.config
 
+import com.soma.app.backendrepo.config.email.EmailProperty
 import com.soma.app.backendrepo.security.auth.service.AuthenticatedUserDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -10,6 +11,8 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.security.SecureRandom
+import org.springframework.mail.javamail.JavaMailSender
+import org.springframework.mail.javamail.JavaMailSenderImpl
 
 /**
  * ApplicationConfig class is used to configure the beans for the application.
@@ -18,7 +21,8 @@ import java.security.SecureRandom
 
 @Configuration
 class ApplicationConfig(
-    private val authenticatedUserDetailsService: AuthenticatedUserDetailsService
+    private val authenticatedUserDetailsService: AuthenticatedUserDetailsService,
+    private val emailProperty: EmailProperty
 ) {
 
     @Bean
@@ -40,5 +44,19 @@ class ApplicationConfig(
     @Bean
     fun authenticationManager(): AuthenticationManager {
         return ProviderManager(authenticationProvider())
+    }
+
+    @Bean
+    fun javaMailSender(): JavaMailSender {
+        val mailSender = JavaMailSenderImpl()
+        mailSender.host = emailProperty.host
+        mailSender.port = emailProperty.port
+        mailSender.username = emailProperty.email
+        mailSender.password = emailProperty.password
+        val props = mailSender.javaMailProperties
+        props["mail.transport.protocol"] = "smtp"
+        props["mail.smtp.auth"] = "true"
+        props["mail.smtp.starttls.enable"] = "true"
+        return mailSender
     }
 }

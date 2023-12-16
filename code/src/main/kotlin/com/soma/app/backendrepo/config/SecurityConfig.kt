@@ -28,23 +28,20 @@ class SecurityConfig(
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
-        http
-            .csrf()
+    http.csrf { csrf ->
+        csrf
             .disable()
-            .authorizeHttpRequests { auth ->
-                auth
-                    .requestMatchers("/api/v1/auth/**")
+            .authorizeHttpRequests {
+                it.requestMatchers("/api/v1/auth/**")
                     .permitAll()
                     .requestMatchers("/api/v1/merchant/**").hasAuthority("ROLE_MERCHANT")
                     .requestMatchers("/api/v1/customer/**").hasAuthority("ROLE_CUSTOMER")
                     .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN")
                     .anyRequest()
                     .authenticated()
-                    .and()
-                    .sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                    .and()
-
+            }
+            .sessionManagement {
+                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
             .userDetailsService(authenticatedUserDetailsService)
             .authenticationProvider(authenticationProvider)
@@ -52,6 +49,6 @@ class SecurityConfig(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter::class.java
             )
-            .build()
+    }.build()
 
 }
