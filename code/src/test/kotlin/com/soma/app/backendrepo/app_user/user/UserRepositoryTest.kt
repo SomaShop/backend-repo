@@ -1,8 +1,8 @@
 package com.soma.app.backendrepo.app_user.user
 
-import com.soma.app.backendrepo.app_user.user.model.UserEntity
-import com.soma.app.backendrepo.app_user.user.model.UserRole
-import com.soma.app.backendrepo.app_user.user.repository.UserRepository
+import com.soma.app.backendrepo.model.app_user.UserEntity
+import com.soma.app.backendrepo.model.app_user.UserRole
+import com.soma.app.backendrepo.authentication.auth.repository.UserRepository
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test

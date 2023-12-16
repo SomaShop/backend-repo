@@ -1,6 +1,7 @@
 package com.soma.app.backendrepo.config
 
-import com.soma.app.backendrepo.security.auth.service.AuthenticatedUserDetailsService
+import com.soma.app.backendrepo.config.jwt.JwtAuthenticationFilter
+import com.soma.app.backendrepo.authentication.auth.service.AuthenticatedUserDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationProvider

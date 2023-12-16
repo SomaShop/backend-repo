@@ -1,14 +1,18 @@
 package com.soma.app.backendrepo.auth.service
 
-import com.soma.app.backendrepo.app_user.user.model.UserEntity
-import com.soma.app.backendrepo.app_user.user.model.UserRole
-import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationService
-import com.soma.app.backendrepo.app_user.user.pass_confirmation_token.PasswordConfirmationToken
-import com.soma.app.backendrepo.app_user.user.repository.UserRepository
-import com.soma.app.backendrepo.security.JwtTokenProvider
-import com.soma.app.backendrepo.security.auth.reser_password.pojos.ResetPasswordRequest
-import com.soma.app.backendrepo.security.auth.reser_password.service.PasswordService
-import com.soma.app.backendrepo.security.auth.dto.JwtResetPasswordTokenResponse
+import com.soma.app.backendrepo.model.app_user.UserEntity
+import com.soma.app.backendrepo.model.app_user.UserRole
+import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationService
+import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationTokenEntity
+import com.soma.app.backendrepo.authentication.auth.repository.UserRepository
+import com.soma.app.backendrepo.config.jwt.JwtTokenProvider
+import com.soma.app.backendrepo.authentication.reser_password.pojos.ResetPasswordRequest
+import com.soma.app.backendrepo.authentication.reser_password.service.PasswordService
+import com.soma.app.backendrepo.authentication.auth.dto.JwtResetPasswordTokenResponse
+import com.soma.app.backendrepo.authentication.reser_password.pojos.UpdatePasswordRequest
+import com.soma.app.backendrepo.email_service.EmailService
+import com.soma.app.backendrepo.utils.ApiData
+import com.soma.app.backendrepo.utils.ApiResult
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -33,10 +37,13 @@ class PasswordServiceTest {
     private lateinit var passwordEncoder: PasswordEncoder
 
     @Mock
-    private lateinit var passwordConfirmationService: PasswordConfirmationService
+    private lateinit var emailConfirmationService: EmailConfirmationService
 
     @InjectMocks
     private lateinit var passwordService: PasswordService
+
+    @Mock
+    private lateinit var emailService: EmailService
 
     @Before
     fun setUp() {
@@ -49,14 +56,17 @@ class PasswordServiceTest {
         passwordEncoder = mock(
             PasswordEncoder::class.java
         )
-        passwordConfirmationService = mock(
-            PasswordConfirmationService::class.java
+        emailConfirmationService = mock(
+            EmailConfirmationService::class.java
+        )
+        emailService = mock(
+            EmailService::class.java
         )
         passwordService = PasswordService(
             userRepository,
             jwtTokenProvider,
             passwordEncoder,
-            passwordConfirmationService
+            emailService,
         )
     }
 
@@ -79,49 +89,10 @@ class PasswordServiceTest {
         Mockito.`when`(userRepository.findByEmail(resetRequest.email)).thenReturn(userEntity)
 
         // Act
-        val result = passwordService
-            .validateResetRequest(resetRequest).data as UserEntity
+        val result = passwordService.resetPassword(resetRequest)
 
         // Assert
-        Assert.assertEquals(result, userEntity.get())
-    }
-
-    @Test
-    fun `generatePasswordResetToken should return the appropriate response`() {
-        val userEntity = Optional.of(
-            UserEntity(
-                UUID.randomUUID(),
-                "firstName",
-                "lastName",
-                "user@example.com",
-                "password",
-                UserRole.ROLE_CUSTOMER,
-                UserRole.ROLE_CUSTOMER.permissions,
-            )
-        )
-        val passwordConfirmationToken = Optional.of(
-            PasswordConfirmationToken(
-                id = UUID.randomUUID(),
-                token = "token",
-                user = userEntity.get(),
-            )
-        )
-        val token = "token"
-        val expiryData = Date()
-        Mockito.`when`(passwordConfirmationService.findTokenByUser(userEntity.get()))
-            .thenReturn(passwordConfirmationToken)
-        Mockito.`when`(jwtTokenProvider.getExpirationDateFromToken(token)).thenReturn(expiryData)
-
-        val result = passwordService
-            .generatePasswordResetToken(userEntity.get())
-        val actual = result.data as JwtResetPasswordTokenResponse
-        val expected = JwtResetPasswordTokenResponse(
-            token,
-            expiryData,
-        )
-
-        Assert.assertEquals(expected, actual)
-        Assert.assertEquals("200 OK", result.status)
+        Assert.assertEquals(result, ApiResult.Success(ApiData(Any())))
     }
 
     @Test
@@ -135,14 +106,14 @@ class PasswordServiceTest {
             UserRole.ROLE_CUSTOMER,
             UserRole.ROLE_CUSTOMER.permissions,
         )
-        val newPassword = "newpassword"
-        val updatedPassUser = userEntity.copy(password = newPassword)
-        Mockito.`when`(passwordEncoder.encode(newPassword)).thenReturn(newPassword)
+        val newPassword = UpdatePasswordRequest("newPassword", "newPassword")
+        val updatedPassUser = userEntity.copy(password = newPassword.password)
+        Mockito.`when`(passwordEncoder.encode(newPassword.password)).thenReturn(newPassword.password)
         Mockito.`when`(userRepository.save(updatedPassUser)).thenReturn(updatedPassUser)
 
-        passwordService.updatePassword(userEntity, newPassword)
+        passwordService.updatePassword("token", newPassword)
 
-        Mockito.verify(passwordEncoder, Mockito.times(1)).encode(newPassword)
+        Mockito.verify(passwordEncoder, Mockito.times(1)).encode(newPassword.password)
         Mockito.verify(userRepository, Mockito.atLeastOnce()).save(updatedPassUser)
         Assert.assertEquals(newPassword, updatedPassUser.getPassword())
     }

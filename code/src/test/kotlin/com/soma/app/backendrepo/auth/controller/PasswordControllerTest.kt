@@ -1,7 +1,7 @@
 package com.soma.app.backendrepo.auth.controller
 
-import com.soma.app.backendrepo.security.auth.reser_password.controller.PasswordController
-import com.soma.app.backendrepo.security.auth.reser_password.service.PasswordService
+import com.soma.app.backendrepo.authentication.reser_password.controller.PasswordController
+import com.soma.app.backendrepo.authentication.reser_password.service.PasswordService
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.mockito.Mock

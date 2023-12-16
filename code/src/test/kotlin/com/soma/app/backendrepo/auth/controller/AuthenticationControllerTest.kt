@@ -1,7 +1,7 @@
 package com.soma.app.backendrepo.auth.controller
 
-import com.soma.app.backendrepo.security.auth.controller.AuthenticationController
-import com.soma.app.backendrepo.security.auth.service.AuthenticationService
+import com.soma.app.backendrepo.authentication.auth.controller.AuthenticationController
+import com.soma.app.backendrepo.authentication.auth.service.AuthenticationServiceImpl
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.mockito.Mock
@@ -13,12 +13,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 @WebMvcTest(AuthenticationController::class)
 class AuthenticationControllerTest {
     @Mock
-    private lateinit var authenticationService: AuthenticationService
+    private lateinit var authenticationServiceImpl: AuthenticationServiceImpl
 
     @Before
     fun setUp() {
-        authenticationService = mock(
-            AuthenticationService::class.java
+        authenticationServiceImpl = mock(
+            AuthenticationServiceImpl::class.java
         )
     }
 
