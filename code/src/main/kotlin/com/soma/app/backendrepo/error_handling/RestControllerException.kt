@@ -2,12 +2,13 @@ package com.soma.app.backendrepo.error_handling
 import com.soma.app.backendrepo.error_handling.exceptions.ApiException
 import com.soma.app.backendrepo.utils.ApiError
 import io.jsonwebtoken.ExpiredJwtException
-import io.jsonwebtoken.io.IOException
-import jakarta.servlet.ServletException
+import io.jsonwebtoken.MalformedJwtException
+import io.jsonwebtoken.UnsupportedJwtException
+import java.security.SignatureException
 import kotlin.Exception
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
@@ -19,21 +20,21 @@ class RestControllerException {
         return ResponseEntity(ex.apiError, HttpHeaders(), ex.status)
     }
 
-    @ExceptionHandler(value = [ExpiredJwtException::class])
-    fun handleExpiredJwtException(ex: ExpiredJwtException, request: WebRequest): ResponseEntity<Any> {
-        val apiError = ApiError(message = "JWT access Token has expired", errorCode = ErrorCode.JWT_TOKEN_EXPIRED.name)
-        return ResponseEntity(apiError, HttpHeaders(), 401)
-    }
-
     @ExceptionHandler(value = [Exception::class])
     fun handleException(ex: Exception, request: WebRequest): ResponseEntity<Any> {
         val apiError = ApiError(message = ex.message, errorCode = ErrorCode.INTERNAL_SERVER_ERROR.name)
         return ResponseEntity(apiError, HttpHeaders(), 500)
     }
 
-    @ExceptionHandler(value = [ServletException::class, IOException::class])
-    fun handleJwtFilterException(ex: Exception, request: WebRequest): ResponseEntity<Any> {
-        val apiError = ApiError(message = ex.message, errorCode = ErrorCode.USER_NOT_FOUND.name)
-        return ResponseEntity(apiError, HttpHeaders(), 404)
+    @ExceptionHandler(value = [
+        SignatureException::class, MalformedJwtException::class,
+        ExpiredJwtException::class , UnsupportedJwtException::class,
+        IllegalArgumentException::class]
+    )
+    fun handleJwtException(ex: Exception, request: WebRequest): ResponseEntity<Any> {
+        val apiError = ApiError(message = "Could not validate JWT token request",
+            errorCode = ErrorCode.JWT_TOKEN_ERROR.name
+        )
+        return ResponseEntity(apiError, HttpHeaders(), HttpStatus.BAD_REQUEST.value())
     }
 }

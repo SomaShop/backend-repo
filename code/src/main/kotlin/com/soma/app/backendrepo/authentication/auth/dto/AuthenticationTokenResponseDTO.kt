@@ -28,6 +28,6 @@ data class JwtAuthenticateTokenResponse(
 )
 
 data class JwtResetPasswordTokenResponse(
-    @JsonProperty("password_confirmation_token") var token: String,
-    @JsonProperty("password_token_expires_at") var expiredToken: Date,
+    @JsonProperty("password_reset_token") var token: String,
+    @JsonProperty("reset_password_token_expires_at") var expiredToken: Date,
 )

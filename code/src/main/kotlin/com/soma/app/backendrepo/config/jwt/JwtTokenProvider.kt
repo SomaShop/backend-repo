@@ -16,7 +16,7 @@ import io.jsonwebtoken.security.Keys
 import org.springframework.stereotype.Service
 import java.security.Key
 import java.security.SignatureException
-import com.soma.app.backendrepo.error_handling.Exception
+import kotlin.Exception
 import java.util.Date
 
 /**
@@ -78,19 +78,19 @@ class JwtTokenProvider(
             return true
         } catch (ex: SignatureException) {
             log.error("Tag: JwtTokenProvider, message: ${ex.message}")
-            throw Exception("Invalid JWT signature. message: ${ex.message}")
+            throw Exception("Invalid JWT signature")
         } catch (ex: MalformedJwtException) {
             log.error("Tag: JwtTokenProvider, message: ${ex.message}")
-            throw Exception("Invalid JWT token: message: ${ex.message}")
+            throw Exception("Invalid JWT token")
         } catch (ex: ExpiredJwtException) {
             log.error("Tag: JwtTokenProvider, message: ${ex.message}")
             throw Exception("Token is expired message: ${ex.message}")
         } catch (ex: UnsupportedJwtException) {
             log.error("Tag: JwtTokenProvider, message: ${ex.message}")
-            throw Exception("Unsupported JWT token. message: ${ex.message}")
+            throw Exception("Unsupported JWT token")
         } catch (ex: IllegalArgumentException) {
             log.error("Tag: JwtTokenProvider, message: ${ex.message}")
-            throw Exception("JWT claims string is empty. message: ${ex.message}")
+            throw Exception("Invalid JWT token")
         }
     }
 
