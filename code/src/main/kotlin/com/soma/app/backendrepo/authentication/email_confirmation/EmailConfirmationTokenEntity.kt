@@ -30,13 +30,18 @@ data class EmailConfirmationTokenEntity(
 //    @JoinColumn(
 //        name = "user_id",
 //    )
+    @Column(nullable = false)
+    val verificationCode: String,
     @Column(nullable = false, unique = true, name = "user_id")
     val userId: UUID? = null,
     @Column(nullable = true)
     var tokenExpiresAt: Date? = null,
     @Column(nullable = true)
+    var verificationCodeExpiresAt: Date? = null,
+    @Column(nullable = true)
     var createdAt: Date? = null,
     @Column(nullable = true)
     var confirmedAt: Date? = null,
+
 )
 

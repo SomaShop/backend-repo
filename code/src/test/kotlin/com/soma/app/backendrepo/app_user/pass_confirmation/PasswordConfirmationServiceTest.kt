@@ -3,7 +3,7 @@ package com.soma.app.backendrepo.app_user.pass_confirmation
 import com.soma.app.backendrepo.model.app_user.UserEntity
 import com.soma.app.backendrepo.model.app_user.UserRole
 import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationRepository
-import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationService
+import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationServiceImpl
 import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationTokenEntity
 import org.junit.Assert
 import org.junit.Before
@@ -20,7 +20,7 @@ class PasswordConfirmationServiceTest {
     @Mock
     private lateinit var emailConfirmationRepository: EmailConfirmationRepository
     @InjectMocks
-    private lateinit var emailConfirmationService: EmailConfirmationService
+    private lateinit var emailConfirmationServiceImpl: EmailConfirmationServiceImpl
 
     private lateinit var emailConfirmationTokenEntity: EmailConfirmationTokenEntity
     private lateinit var userEntity: UserEntity
@@ -30,7 +30,7 @@ class PasswordConfirmationServiceTest {
         emailConfirmationRepository = mock(
             EmailConfirmationRepository::class.java
         )
-        emailConfirmationService = EmailConfirmationService(
+        emailConfirmationServiceImpl = EmailConfirmationServiceImpl(
             emailConfirmationRepository
         )
         userEntity = UserEntity(
@@ -43,7 +43,8 @@ class PasswordConfirmationServiceTest {
         )
         emailConfirmationTokenEntity = EmailConfirmationTokenEntity(
             token = "token",
-            userId = userEntity.userID
+            userId = userEntity.userID,
+            verificationCode = "1234"
         )
     }
 
@@ -51,7 +52,7 @@ class PasswordConfirmationServiceTest {
     fun `verify that token is saved`() {
         `when`(emailConfirmationRepository.save(emailConfirmationTokenEntity))
             .thenReturn(emailConfirmationTokenEntity)
-        emailConfirmationService.saveToken(emailConfirmationTokenEntity)
+        emailConfirmationServiceImpl.saveToken(emailConfirmationTokenEntity)
         verify(emailConfirmationRepository, atLeastOnce())
             .save(emailConfirmationTokenEntity)
     }
@@ -61,13 +62,13 @@ class PasswordConfirmationServiceTest {
         `when`(emailConfirmationRepository.findByToken("token"))
             .thenReturn(Optional.of(emailConfirmationTokenEntity))
 
-        emailConfirmationService.getToken(emailConfirmationTokenEntity.token)
+        emailConfirmationServiceImpl.getToken(emailConfirmationTokenEntity.token)
 
         verify(emailConfirmationRepository, atLeastOnce())
             .findByToken(emailConfirmationTokenEntity.token)
 
         Assert.assertEquals(emailConfirmationTokenEntity,
-            emailConfirmationService.getToken(emailConfirmationTokenEntity.token).get())
+            emailConfirmationServiceImpl.getToken(emailConfirmationTokenEntity.token).get())
     }
 
     @Test
@@ -75,13 +76,13 @@ class PasswordConfirmationServiceTest {
         `when`(emailConfirmationRepository.findByUserId(userEntity.userID))
             .thenReturn(Optional.of(emailConfirmationTokenEntity))
 
-        emailConfirmationService.findByUserId(userEntity.userID)
+        emailConfirmationServiceImpl.findByUserId(userEntity.userID)
 
         verify(emailConfirmationRepository, atLeastOnce())
             .findByUserId(userEntity.userID)
 
         Assert.assertEquals(emailConfirmationTokenEntity,
-            emailConfirmationService.findByUserId(userEntity.userID).get())
+            emailConfirmationServiceImpl.findByUserId(userEntity.userID).get())
     }
 
     @Test
@@ -92,7 +93,7 @@ class PasswordConfirmationServiceTest {
         `when`(emailConfirmationRepository.findByToken("token"))
             .thenReturn(Optional.of(emailConfirmationTokenEntity))
 
-        emailConfirmationService.setConfirmedAt(emailConfirmationTokenEntity.token)
+        emailConfirmationServiceImpl.saveEmailConfirmationToken(emailConfirmationTokenEntity)
 
         verify(emailConfirmationRepository, atLeastOnce())
             .findByToken(emailConfirmationTokenEntity.token)

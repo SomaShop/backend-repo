@@ -11,6 +11,8 @@ import java.util.UUID
 data class EmailConfirmationTokenDTO(
     val id: UUID,
     val token: String,
+    val verificationCode: String,
+    val verificationCodeExpiresAt: Date? = null,
     val tokenExpiresAt: Date? = null,
     val userId: UUID? = null,
     val createdAt: Date? = null,
@@ -27,6 +29,8 @@ data class EmailConfirmationTokenDTO(
                 userId = emailConfirmationTokenEntity.userId,
                 createdAt = emailConfirmationTokenEntity.createdAt,
                 confirmedAt = emailConfirmationTokenEntity.confirmedAt,
+                verificationCode = emailConfirmationTokenEntity.verificationCode,
+                verificationCodeExpiresAt = emailConfirmationTokenEntity.verificationCodeExpiresAt
             )
         }
     }

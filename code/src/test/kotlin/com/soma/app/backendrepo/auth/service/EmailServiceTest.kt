@@ -38,17 +38,11 @@ class EmailServiceTest {
     }
 
     @Test
-    fun `verify that sendPasswordResetEmail method is called`() {
-        val token = "token"
-        emailService.sendPasswordResetEmail(userEntity.email, token)
-        verify(emailService, atLeastOnce()).sendPasswordResetEmail(userEntity.email, token)
-    }
-
-    @Test
-    fun `verify that sendPasswordConfirmationEmail method is called with correct arguments`() {
-
-        emailService.sendEmailConfirmationEmail(userEntity, token)
-        verify(emailService, atLeastOnce()).sendEmailConfirmationEmail(userEntity, token)
+    fun `verify that sendEmail method is called`() {
+        val subject = "subject"
+        val text = "text"
+        emailService.sendEmail(userEntity.email, subject, text)
+        verify(emailService, atLeastOnce()).sendEmail(userEntity.email, subject, text)
     }
 
 

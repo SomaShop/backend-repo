@@ -2,13 +2,11 @@ package com.soma.app.backendrepo.auth.service
 
 import com.soma.app.backendrepo.model.app_user.UserEntity
 import com.soma.app.backendrepo.model.app_user.UserRole
-import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationService
-import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationTokenEntity
+import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationServiceImpl
 import com.soma.app.backendrepo.authentication.auth.repository.UserRepository
 import com.soma.app.backendrepo.config.jwt.JwtTokenProvider
 import com.soma.app.backendrepo.authentication.reser_password.pojos.ResetPasswordRequest
 import com.soma.app.backendrepo.authentication.reser_password.service.PasswordService
-import com.soma.app.backendrepo.authentication.auth.dto.JwtResetPasswordTokenResponse
 import com.soma.app.backendrepo.authentication.reser_password.pojos.UpdatePasswordRequest
 import com.soma.app.backendrepo.email_service.EmailService
 import com.soma.app.backendrepo.utils.ApiData
@@ -37,7 +35,7 @@ class PasswordServiceTest {
     private lateinit var passwordEncoder: PasswordEncoder
 
     @Mock
-    private lateinit var emailConfirmationService: EmailConfirmationService
+    private lateinit var emailConfirmationServiceImpl: EmailConfirmationServiceImpl
 
     @InjectMocks
     private lateinit var passwordService: PasswordService
@@ -56,8 +54,8 @@ class PasswordServiceTest {
         passwordEncoder = mock(
             PasswordEncoder::class.java
         )
-        emailConfirmationService = mock(
-            EmailConfirmationService::class.java
+        emailConfirmationServiceImpl = mock(
+            EmailConfirmationServiceImpl::class.java
         )
         emailService = mock(
             EmailService::class.java

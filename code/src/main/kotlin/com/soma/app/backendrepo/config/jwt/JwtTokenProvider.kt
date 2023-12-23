@@ -119,7 +119,7 @@ class JwtTokenProvider(
     }
 
     fun createPasswordToken(userEntity: UserEntity): String {
-        val tokenExpirationTime = 15 * 60 * 1000
+        val tokenExpirationTime = 60 * 1000
         val claims = Jwts
             .claims()
             .setSubject(userEntity.email)

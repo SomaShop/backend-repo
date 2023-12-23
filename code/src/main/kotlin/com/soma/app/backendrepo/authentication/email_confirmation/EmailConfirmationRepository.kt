@@ -8,4 +8,5 @@ import java.util.UUID
 interface EmailConfirmationRepository: JpaRepository<EmailConfirmationTokenEntity, UUID> {
     fun findByToken(token: String): Optional<EmailConfirmationTokenEntity>
     fun findByUserId(userId: UUID?): Optional<EmailConfirmationTokenEntity>
+    fun findByVerificationCode(verificationCode: String): Optional<EmailConfirmationTokenEntity>
 }

@@ -5,6 +5,7 @@ import com.soma.app.backendrepo.authentication.auth.pojos.isNotStrongPassword
 import com.soma.app.backendrepo.authentication.auth.pojos.isShortPassword
 import com.soma.app.backendrepo.model.app_user.UserEntity
 import com.soma.app.backendrepo.authentication.auth.repository.UserRepository
+import com.soma.app.backendrepo.authentication.auth.service.AuthenticationServiceImpl
 import com.soma.app.backendrepo.config.jwt.JwtTokenProvider
 import com.soma.app.backendrepo.authentication.reser_password.pojos.ResetPasswordRequest
 import com.soma.app.backendrepo.authentication.reser_password.pojos.UpdatePasswordRequest
@@ -54,7 +55,7 @@ class PasswordService(
                 val user = userEntity.get()
                 val passwordToken = jwtTokenProvider.createPasswordToken(user)
                 val expiryDate = jwtTokenProvider.getExpirationDateFromToken(passwordToken)
-                emailService.sendPasswordResetEmail(user.email, passwordToken)
+                sendPasswordResetEmail(user.email, passwordToken)
                 val resetPasswordDTO = JwtResetPasswordTokenResponse(
                     passwordToken,
                     expiryDate
@@ -127,5 +128,16 @@ class PasswordService(
             user.isPresent -> user.get()
             else -> null
         }
+    }
+
+    fun sendPasswordResetEmail(email: String, token: String) {
+        val subject = "Password reset request"
+        //TODO: update the password reset url in production
+        val body  = "To reset your password, please click the link below:\n" +
+            "http://localhost:8080/password/reset_password?token=$token"
+
+        emailService.sendEmail(email, subject, body)
+
+        AuthenticationServiceImpl.logger.info("TAG: EmailService: sendPasswordResetEmail: message: mail sent successfully")
     }
 }

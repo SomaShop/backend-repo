@@ -38,8 +38,10 @@ class PasswordConfirmationRepositoryTest {
     )
     private val token1 = "token1"
     private val token2 = "token2"
-    private val emailConfirmationTokenEntity1 = EmailConfirmationTokenEntity(token = token1, userId = userEntity1.userID)
-    private val emailConfirmationTokenEntity2 = EmailConfirmationTokenEntity(token = token2, userId = userEntity2.userID)
+    private val emailConfirmationTokenEntity1 = EmailConfirmationTokenEntity(token = token1, userId = userEntity1.userID,
+        verificationCode = "1234")
+    private val emailConfirmationTokenEntity2 = EmailConfirmationTokenEntity(token = token2, userId = userEntity2.userID,
+        verificationCode = "1234")
 
     @Before
     fun setUp() {
