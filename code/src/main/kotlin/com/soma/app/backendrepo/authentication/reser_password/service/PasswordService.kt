@@ -1,8 +1,6 @@
 package com.soma.app.backendrepo.authentication.reser_password.service
 
 import com.soma.app.backendrepo.authentication.auth.dto.JwtResetPasswordTokenResponse
-import com.soma.app.backendrepo.authentication.auth.pojos.isNotStrongPassword
-import com.soma.app.backendrepo.authentication.auth.pojos.isShortPassword
 import com.soma.app.backendrepo.model.app_user.UserEntity
 import com.soma.app.backendrepo.authentication.auth.repository.UserRepository
 import com.soma.app.backendrepo.authentication.auth.service.AuthenticationServiceImpl
@@ -51,6 +49,7 @@ class PasswordService(
                 ApiResult.Error(apiError)
                 throw ApiException(apiError, status = HttpStatus.BAD_REQUEST.value())
             }
+
             else -> {
                 val user = userEntity.get()
                 val passwordToken = jwtTokenProvider.createPasswordToken(user)
@@ -75,33 +74,10 @@ class PasswordService(
      */
 
     fun updatePassword(token: String, passwordRequest: UpdatePasswordRequest): ApiResult {
-        var errorCode = ""
-        var errorMessage = ""
         val apiError: ApiError
-        if (passwordRequest.password.isShortPassword()) {
-            errorCode = ErrorCode.SHORT_PASSWORD.name
-            errorMessage = "Password must be at least 8 characters long"
-        } else if (passwordRequest.password.isNotStrongPassword()) {
-            errorCode = ErrorCode.WEAK_PASSWORD.name
-            errorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
-        } else if (passwordRequest.password != passwordRequest.confirmPassword) {
-            errorCode = ErrorCode.PASSWORD_MISMATCH.name
-            errorMessage = "Passwords do not match"
-        }
-        return if (errorCode.isNotEmpty() && errorMessage.isNotEmpty()) {
-            apiError = ApiError(errorMessage, errorCode)
-            ApiResult.Error(apiError)
-            throw ApiException(apiError, status = HttpStatus.BAD_REQUEST.value())
-        } else {
-            updatePasswordRequest(token, passwordRequest)
-        }
-    }
-
-    private fun updatePasswordRequest(token: String, passwordRequest: UpdatePasswordRequest): ApiResult {
-        val apiError: ApiError
-        findUser(token)?.let {
+        return findUser(token)?.let {
             if (passwordEncoder.matches(passwordRequest.password, it.getPassword()) ||
-                passwordEncoder.matches(passwordRequest.confirmPassword, it.getPassword()) ) {
+                passwordEncoder.matches(passwordRequest.confirmPassword, it.getPassword())) {
                 apiError = ApiError(
                     message = "New password cannot be the same as the old password",
                     errorCode = ErrorCode.OLD_PASSWORD_DETECTED.name
@@ -133,7 +109,7 @@ class PasswordService(
     fun sendPasswordResetEmail(email: String, token: String) {
         val subject = "Password reset request"
         //TODO: update the password reset url in production
-        val body  = "To reset your password, please click the link below:\n" +
+        val body = "To reset your password, please click the link below:\n" +
             "http://localhost:8080/password/reset_password?token=$token"
 
         emailService.sendEmail(email, subject, body)

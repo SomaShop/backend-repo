@@ -5,8 +5,6 @@ import com.soma.app.backendrepo.authentication.auth.dto.JwtRegistrationTokenResp
 import com.soma.app.backendrepo.authentication.auth.pojos.AuthenticationRequest
 import com.soma.app.backendrepo.authentication.auth.pojos.RegistrationRequest
 import com.soma.app.backendrepo.authentication.auth.pojos.VerificationType
-import com.soma.app.backendrepo.authentication.auth.pojos.isNotStrongPassword
-import com.soma.app.backendrepo.authentication.auth.pojos.isValidEmail
 import com.soma.app.backendrepo.authentication.auth.repository.UserRepository
 import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationServiceImpl
 import com.soma.app.backendrepo.authentication.email_confirmation.EmailConfirmationTokenDTO
@@ -63,7 +61,7 @@ class AuthenticationServiceImpl(
     private val emailConfirmationServiceImpl: EmailConfirmationServiceImpl,
     private val emailService: EmailService,
     private val jwtProperties: JwtProperties
-): AuthenticationService {
+) : AuthenticationService {
     private lateinit var customerProfile: CustomerProfileEntity
     private lateinit var merchantProfile: MerchantProfileEntity
     private lateinit var user: UserEntity
@@ -79,39 +77,19 @@ class AuthenticationServiceImpl(
     }
 
     override fun register(registrationRequest: RegistrationRequest): ApiResult {
-        var errorMessage = ""
-        var errorCode = ""
-        if (!registrationRequest.email.isValidEmail()) {
-            errorMessage = "Email is not valid. Please put in a valid email"
-            errorCode = ErrorCode.INVALID_EMAIL.name
-        } else if (registrationRequest.isNotValid()) {
-            errorMessage = "Please fill in all the required fields"
-            errorCode = ErrorCode.INVALID_INPUT.name
-        } else if (registrationRequest.password.isNotStrongPassword()) {
-            errorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
-            errorCode = ErrorCode.WEAK_PASSWORD.name
-        } else if (registrationRequest.password != registrationRequest.confirmPassword) {
-            errorMessage = "Passwords do not match"
-            errorCode = ErrorCode.PASSWORD_MISMATCH.name
-        }
-        return if (errorMessage.isNotEmpty() && errorCode.isNotEmpty()) {
-            val apiError = ApiError(errorCode = errorCode, message = errorMessage)
-            ApiResult.Error(apiError)
-            throw ApiException(apiError = apiError, status = HttpStatus.BAD_REQUEST.value())
-        } else {
-            val userEmail = userRepository.findByEmail(registrationRequest.email)
-            when {
-                userEmail.isPresent -> {
-                    errorMessage = "User with email: ${registrationRequest.email} already exists"
-                    errorCode = ErrorCode.USER_ALREADY_EXISTS.name
-                    val apiError = ApiError(errorCode = errorCode, message = errorMessage)
-                    ApiResult.Error(apiError)
-                    throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
-                }
-                else -> {
-                    val dto = createRegistrationToken(registrationRequest)
-                    ApiResult.Success(data = ApiData(dto))
-                }
+        val userEmail = userRepository.findByEmail(registrationRequest.email)
+        return when {
+            userEmail.isPresent -> {
+                val errorMessage = "User with email: ${registrationRequest.email} already exists"
+                val errorCode = ErrorCode.USER_ALREADY_EXISTS.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
+            }
+
+            else -> {
+                val dto = createRegistrationToken(registrationRequest)
+                ApiResult.Success(data = ApiData(dto))
             }
         }
     }
@@ -147,9 +125,11 @@ class AuthenticationServiceImpl(
             VerificationType.VERIFICATION_CODE -> {
                 sendVerificationCode(user.email, emailConfirmationTokenEntity.verificationCode)
             }
+
             VerificationType.EMAIL_LINK -> {
                 sendConfirmationEmailLink(user.email, emailConfirmationTokenEntity.token)
             }
+
             VerificationType.PHONE -> {
                 // TODO: Implement phone verification
             }
@@ -343,6 +323,7 @@ class AuthenticationServiceImpl(
                 throw ApiException(apiError = apiError, status = HttpStatus.NOT_FOUND.value())
 
             }
+
             emailConfirmationEntity.get().verificationCodeExpiresAt?.before(Date()) == true -> {
                 errorMessage = "Verification code has expired"
                 errorCode = ErrorCode.VERIFICATION_CODE_EXPIRED.name
