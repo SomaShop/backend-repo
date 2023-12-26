@@ -341,14 +341,6 @@ class AuthenticationServiceImpl(
                     ApiResult.Error(apiError)
                     throw ApiException(apiError = apiError, status = HttpStatus.NOT_FOUND.value())
                 }
-
-                if (emailConfirmationEntity.get().verificationCode != verificationCode) {
-                    errorMessage = "Verification code does not match"
-                    errorCode = ErrorCode.VERIFICATION_CODE_MISMATCH.name
-                    apiError = ApiError(errorCode = errorCode, message = errorMessage)
-                    ApiResult.Error(apiError)
-                    throw ApiException(apiError = apiError, status = HttpStatus.NOT_FOUND.value())
-                }
                 val savedEmailEntity = emailConfirmationEntity.get().copy(confirmedAt = Date())
                 emailConfirmationServiceImpl.saveEmailConfirmationToken(savedEmailEntity)
                 val confirmedUser = user.get().copy(enabled = true)
