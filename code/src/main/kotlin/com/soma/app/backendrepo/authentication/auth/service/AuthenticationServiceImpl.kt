@@ -157,7 +157,7 @@ class AuthenticationServiceImpl(
     fun sendConfirmationEmailLink(email: String, token: String) {
         val subject = "Email confirmation request"
         //TODO: update the password confirmation url in production
-        val body = "To confirm your email, please click the link below:\n" +
+        val body = "To confirm your email, please click the link below: The code expires in 10 minutes\n" +
             "http://localhost:8080/confirm-email?token=$token"
         emailService.sendEmail(email, subject, body)
     }
@@ -167,7 +167,7 @@ class AuthenticationServiceImpl(
         message.setTo(email)
         val subject = "Email verification request"
         val bodyText = "To verify your registration, please enter the below code in the app:\n" +
-            verificationCode
+            verificationCode + "\n" + "The code expires in 10 minutes."
         emailService.sendEmail(email, subject, bodyText)
     }
 
