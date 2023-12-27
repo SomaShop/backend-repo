@@ -227,15 +227,15 @@ class AuthenticationServiceImpl(
             return ApiResult.Success(data = ApiData(tokenResponseDTO))
 
         } catch (e: AuthenticationException) {
-            val localizedMessage = when (e) {
-                is BadCredentialsException -> e.message
-                is DisabledException -> e.localizedMessage
-                is LockedException -> e.localizedMessage
-                is AccountExpiredException -> e.localizedMessage
-                is CredentialsExpiredException -> e.localizedMessage
-                else -> "Could not authenticate user with the given credentials"
+            logger.error("Tag: $TAG, An exception occurred during API request processing: ${e.localizedMessage}")
+            val apiError = when (e) {
+                is BadCredentialsException -> ApiError(errorCode = ErrorCode.BAD_CREDENTIALS.name, message = e.localizedMessage)
+                is DisabledException -> ApiError(errorCode = ErrorCode.USER_NOT_VERIFIED.name, message = e.localizedMessage)
+                is LockedException -> ApiError(errorCode = ErrorCode.ACCOUNT_LOCKED.name, message = e.localizedMessage)
+                is AccountExpiredException -> ApiError(errorCode = ErrorCode.ACCOUNT_EXPIRED.name, message = e.localizedMessage)
+                is CredentialsExpiredException -> ApiError(errorCode = ErrorCode.CREDENTIALS_EXPIRED.name, message = e.localizedMessage)
+                else -> ApiError(errorCode = ErrorCode.UNKNOWN_CREDENTIALS_ERROR.name, message = e.localizedMessage)
             }
-            val apiError = ApiError(errorCode = ErrorCode.BAD_CREDENTIALS.name, message = localizedMessage)
             throw ApiException(apiError = apiError, status = HttpStatus.UNAUTHORIZED.value())
         }
     }
@@ -337,6 +337,13 @@ class AuthenticationServiceImpl(
                 if (user == null) {
                     errorMessage = "User not found"
                     errorCode = ErrorCode.USER_NOT_FOUND.name
+                    apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                    ApiResult.Error(apiError)
+                    throw ApiException(apiError = apiError, status = HttpStatus.NOT_FOUND.value())
+                }
+                if (user.get().isEnabled()) {
+                    errorMessage = "User already verified. Please login"
+                    errorCode = ErrorCode.USER_ALREADY_VERIFIED.name
                     apiError = ApiError(errorCode = errorCode, message = errorMessage)
                     ApiResult.Error(apiError)
                     throw ApiException(apiError = apiError, status = HttpStatus.NOT_FOUND.value())
