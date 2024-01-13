@@ -25,17 +25,5 @@ data class AddressEntity(
     val state: String,
     val zipCode: String,
     val isDefault : Boolean = false,
-//    @OneToOne(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
-//    @JoinColumn(name = "country_id")
     val countryId: UUID? = null
-) {
-
-//    @OneToOne(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
-//    @JoinColumn(name = "country_id")
-//    val country: CountryEntity? = null
-
-//    fun assignCountry(countryEntity: CountryEntity) {
-//        this.country = countryEntity
-//    }
-//    fun getCountry() = country
-}
+)
