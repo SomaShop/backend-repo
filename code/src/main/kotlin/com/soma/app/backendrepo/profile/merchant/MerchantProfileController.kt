@@ -3,7 +3,7 @@ package com.soma.app.backendrepo.profile.merchant
 import com.soma.app.backendrepo.address.pojo.AddressData
 import com.soma.app.backendrepo.profile.merchant.pojo.MerchantProfileData
 import com.soma.app.backendrepo.model.app_user.AuthenticatedUser
-import com.soma.app.backendrepo.error_handling.ApiResponse
+import com.soma.app.backendrepo.utils.ApiResult
 import com.soma.app.backendrepo.utils.Logger
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
+import org.springframework.http.ResponseEntity
 
 /**
  * Controller for MerchantProfile entity.
@@ -31,24 +32,11 @@ class MerchantProfileController(
     val logger = Logger.getLogger<MerchantProfileController>()
 
     @GetMapping("/profile")
-    fun getMerchantProfile(@AuthenticationPrincipal authenticationPrincipal: AuthenticatedUser): ApiResponse {
+    fun getMerchantProfile(@AuthenticationPrincipal authenticationPrincipal: AuthenticatedUser): ResponseEntity<ApiResult> {
         logger.info("TAG: MerchantProfileController - getMerchantProfile() message: ${authenticationPrincipal.userEntity.email}")
-        val apiResponse = merchantProfileService.getMerchantProfile(authenticationPrincipal.userEntity)
-        return when (apiResponse.error) {
-            null -> {
-                ApiResponse(
-                    status = apiResponse.status,
-                    data = apiResponse.data
-                )
-            }
-
-            else -> {
-                return ApiResponse(
-                    status = apiResponse.status,
-                    error = apiResponse.error,
-                    data = apiResponse.data
-                )
-            }
+        return when (val apiResponse = merchantProfileService.getMerchantProfile(authenticationPrincipal.userEntity)) {
+            is ApiResult.Success -> ResponseEntity.ok(apiResponse)
+            is ApiResult.Error -> ResponseEntity.badRequest().body(apiResponse)
         }
     }
 
@@ -57,28 +45,16 @@ class MerchantProfileController(
         @RequestParam merchantId: UUID,
         @RequestBody updateRequest: MerchantProfileData,
         @AuthenticationPrincipal authenticationPrincipal: AuthenticatedUser
-    ): ApiResponse {
+    ): ResponseEntity<ApiResult> {
         logger.info("TAG: MerchantProfileController - updateMerchantProfile()")
         val apiResponse = merchantProfileService.updateMerchantProfile(
             user = authenticationPrincipal.userEntity,
             id = merchantId,
             updateRequest = updateRequest
         )
-        return when (apiResponse.error) {
-            null -> {
-                ApiResponse(
-                    status = apiResponse.status,
-                    data = apiResponse.data
-                )
-            }
-
-            else -> {
-                return ApiResponse(
-                    status = apiResponse.status,
-                    error = apiResponse.error,
-                    data = apiResponse.data
-                )
-            }
+        return when (apiResponse) {
+            is ApiResult.Success -> ResponseEntity.ok(apiResponse)
+            is ApiResult.Error -> ResponseEntity.badRequest().body(apiResponse)
         }
     }
 
@@ -86,27 +62,15 @@ class MerchantProfileController(
     fun createMerchantAddress(
         @RequestParam merchantId: UUID,
         @RequestBody addressData: AddressData,
-    ): ApiResponse {
+    ): ResponseEntity<ApiResult> {
         logger.info("TAG: MerchantProfileController - createAddress()")
         val apiResponse = merchantProfileService.createMerchantAddress(
             merchantId = merchantId,
             addressData = addressData
         )
-        return when (apiResponse.error) {
-            null -> {
-                ApiResponse(
-                    status = apiResponse.status,
-                    data = apiResponse.data
-                )
-            }
-
-            else -> {
-                return ApiResponse(
-                    status = apiResponse.status,
-                    error = apiResponse.error,
-                    data = apiResponse.data
-                )
-            }
+        return when (apiResponse) {
+            is ApiResult.Success -> ResponseEntity.ok(apiResponse)
+            is ApiResult.Error -> ResponseEntity.badRequest().body(apiResponse)
         }
     }
 
@@ -115,28 +79,16 @@ class MerchantProfileController(
         @RequestParam merchantId: UUID,
         @RequestParam addressId: UUID,
         @RequestBody addressData: AddressData,
-    ): ApiResponse {
+    ): ResponseEntity<ApiResult> {
         logger.info("TAG: MerchantProfileController - updateAddress()")
         val apiResponse = merchantProfileService.updateMerchantAddress(
             merchantId = merchantId,
             addressData = addressData,
             addressId = addressId
         )
-        return when (apiResponse.error) {
-            null -> {
-                ApiResponse(
-                    status = apiResponse.status,
-                    data = apiResponse.data
-                )
-            }
-
-            else -> {
-                return ApiResponse(
-                    status = apiResponse.status,
-                    error = apiResponse.error,
-                    data = apiResponse.data
-                )
-            }
+        return when (apiResponse) {
+            is ApiResult.Success -> ResponseEntity.ok(apiResponse)
+            is ApiResult.Error -> ResponseEntity.badRequest().body(apiResponse)
         }
     }
 

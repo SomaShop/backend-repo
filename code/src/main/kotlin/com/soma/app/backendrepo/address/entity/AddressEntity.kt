@@ -4,8 +4,6 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import java.util.UUID
 
@@ -27,14 +25,17 @@ data class AddressEntity(
     val state: String,
     val zipCode: String,
     val isDefault : Boolean = false,
+//    @OneToOne(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
+//    @JoinColumn(name = "country_id")
+    val countryId: UUID? = null
 ) {
 
-    @OneToOne
-    @JoinColumn(name = "country_id")
-    private lateinit var country: CountryEntity
+//    @OneToOne(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
+//    @JoinColumn(name = "country_id")
+//    val country: CountryEntity? = null
 
-    fun assignCountry(countryEntity: CountryEntity) {
-        this.country = countryEntity
-    }
-    fun getCountry() = country
+//    fun assignCountry(countryEntity: CountryEntity) {
+//        this.country = countryEntity
+//    }
+//    fun getCountry() = country
 }

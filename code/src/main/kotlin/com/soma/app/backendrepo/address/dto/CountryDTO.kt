@@ -1,6 +1,8 @@
 package com.soma.app.backendrepo.address.dto
 
 import com.soma.app.backendrepo.address.entity.CountryEntity
+import com.soma.app.backendrepo.utils.constants.getCountryCode
+import com.soma.app.backendrepo.utils.constants.getCurrenciesForCountry
 import java.util.UUID
 
 data class CountryDTO(
@@ -12,10 +14,10 @@ data class CountryDTO(
     companion object {
         fun fromCountryEntity(countryEntity: CountryEntity): CountryDTO {
             return CountryDTO(
-                countryId = countryEntity.uuid,
+                countryId = countryEntity.countryId,
                 countryName = countryEntity.countryName,
-                code = countryEntity.getCountryCode(),
-                currency = countryEntity.getCurrenciesForCountry(),
+                code = getCountryCode(countryEntity.countryName),
+                currency = getCurrenciesForCountry(countryEntity.countryName),
             )
         }
     }

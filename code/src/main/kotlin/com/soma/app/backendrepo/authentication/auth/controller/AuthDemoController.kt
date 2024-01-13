@@ -2,7 +2,8 @@ package com.soma.app.backendrepo.authentication.auth.controller
 
 import com.soma.app.backendrepo.model.app_user.UserEntityDTO
 import com.soma.app.backendrepo.model.app_user.AuthenticatedUser
-import com.soma.app.backendrepo.error_handling.ApiResponse
+import com.soma.app.backendrepo.utils.ApiData
+import com.soma.app.backendrepo.utils.ApiResult
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -29,13 +30,9 @@ class AuthDemoController {
      * otherwise it will throw 403 Forbidden
      */
     @GetMapping("/current-user")
-    fun getCurrentUser(@AuthenticationPrincipal authenticatedUser: AuthenticatedUser): ApiResponse {
+    fun getCurrentUser(@AuthenticationPrincipal authenticatedUser: AuthenticatedUser): ApiResult {
         val user = authenticatedUser.userEntity
         val userEntityDTO = UserEntityDTO.fromUserEntity(user)
-        return ApiResponse(
-            status = "200 OK",
-            error = null,
-            data = userEntityDTO
-        )
+        return ApiResult.Success(data = ApiData(userEntityDTO))
     }
 }

@@ -7,4 +7,5 @@ import java.util.UUID
 interface CountryEntityRepository: JpaRepository<CountryEntity, UUID> {
     fun findByCountryName(countryName: String): CountryEntity?
     fun findByCountryNumericCode(numericCode: String): CountryEntity?
+    fun findByCountryId(countryId: UUID?): CountryEntity?
 }

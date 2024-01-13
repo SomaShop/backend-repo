@@ -9,5 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.util.UUID
 
 interface AddressEntityRepository: JpaRepository<AddressEntity, UUID> {
-    fun findByCountryUuid(countryUuid: UUID): List<AddressEntity>
+    fun findByCountryId(countryId: UUID?): AddressEntity?
 }

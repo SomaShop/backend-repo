@@ -1,13 +1,7 @@
 package com.soma.app.backendrepo.authentication.reser_password.controller
 
-import com.soma.app.backendrepo.authentication.auth.dto.JwtResetPasswordTokenResponse
-import com.soma.app.backendrepo.model.app_user.UserEntity
-import com.soma.app.backendrepo.error_handling.ApiResponse
-import com.soma.app.backendrepo.error_handling.Exception
-import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
 import com.soma.app.backendrepo.authentication.reser_password.pojos.ResetPasswordRequest
 import com.soma.app.backendrepo.authentication.reser_password.pojos.UpdatePasswordRequest
-import com.soma.app.backendrepo.email_service.EmailService
 import com.soma.app.backendrepo.authentication.reser_password.service.PasswordService
 import com.soma.app.backendrepo.utils.ApiResult
 import com.soma.app.backendrepo.utils.Logger

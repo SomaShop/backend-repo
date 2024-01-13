@@ -6,14 +6,16 @@ import com.soma.app.backendrepo.address.service.AddressEntityService
 import com.soma.app.backendrepo.profile.customer.dto.CustomerProfileDTO
 import com.soma.app.backendrepo.profile.customer.pojo.CustomerProfileData
 import com.soma.app.backendrepo.model.app_user.UserEntity
-import com.soma.app.backendrepo.error_handling.ApiResponse
-import com.soma.app.backendrepo.error_handling.Exception
-import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
+import com.soma.app.backendrepo.error_handling.ErrorCode
+import com.soma.app.backendrepo.error_handling.exceptions.ApiException
+import com.soma.app.backendrepo.utils.ApiData
+import com.soma.app.backendrepo.utils.ApiError
+import com.soma.app.backendrepo.utils.ApiResult
 import com.soma.app.backendrepo.utils.Logger
-import com.soma.app.backendrepo.utils.RequestResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import org.springframework.http.HttpStatus
 
 /**
  * Service for CustomerProfile entity.
@@ -29,28 +31,23 @@ class CustomerProfileService(
 ) {
     val logger = Logger.getLogger<CustomerProfileService>()
 
-    fun getCustomerProfile(userEntity: UserEntity): ApiResponse {
+    fun getCustomerProfile(userEntity: UserEntity): ApiResult {
         val customerProfile = customerProfileRepository.findByUser(userEntity)
         return when {
             !customerProfile.isPresent -> {
-                val error = GlobalRequestErrorHandler.handleUserNotFoundException(
-                    Exception(
-                        errorMessage = "Customer profile not found",
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Customer profile not found"
+                val errorCode = ErrorCode.CUSTOMER_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
                 val customerProfileDTO = CustomerProfileDTO.fromCustomerProfileEntity(
                     customerProfile.get()
                 )
-                ApiResponse(
-                    status = "200 OK",
-                    data = customerProfileDTO
+                ApiResult.Success(
+                    data = ApiData(customerProfileDTO)
                 )
             }
         }
@@ -61,19 +58,15 @@ class CustomerProfileService(
         userEntity: UserEntity,
         id: UUID,
         updateRequest: CustomerProfileData
-    ): ApiResponse {
+    ): ApiResult {
         val profile = customerProfileRepository.findByCustomerId(id)
         return when {
             !profile.isPresent -> {
-                val error = GlobalRequestErrorHandler.handleUserNotFoundException(
-                    Exception(
-                        "Customer profile not found"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Customer profile not found"
+                val errorCode = ErrorCode.CUSTOMER_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
@@ -86,10 +79,7 @@ class CustomerProfileService(
                 val customerProfileDTO = CustomerProfileDTO.fromCustomerProfileEntity(
                     updatedCustomerProfile
                 )
-                ApiResponse(
-                    status = "200 OK",
-                    data = customerProfileDTO
-                )
+                ApiResult.Success(data = ApiData(customerProfileDTO))
             }
         }
     }
@@ -99,19 +89,15 @@ class CustomerProfileService(
         userEntity: UserEntity,
         customerId: UUID,
         customerProfileRequest: CustomerProfileData
-    ): ApiResponse {
+    ): ApiResult {
         val profile = customerProfileRepository.findByCustomerId(customerId)
         return when {
             !profile.isPresent -> {
-                val error = GlobalRequestErrorHandler.handleUserNotFoundException(
-                    Exception(
-                        "Customer profile not found"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Customer profile not found"
+                val errorCode = ErrorCode.CUSTOMER_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
@@ -124,10 +110,7 @@ class CustomerProfileService(
                 val customerProfileDTO = CustomerProfileDTO.fromCustomerProfileEntity(
                     updatedCustomerProfile
                 )
-                ApiResponse(
-                    status = "200 OK",
-                    data = customerProfileDTO
-                )
+                ApiResult.Success(data = ApiData(customerProfileDTO))
             }
         }
     }
@@ -137,19 +120,15 @@ class CustomerProfileService(
         customerId: UUID,
         addressData: AddressData,
         addressId: UUID
-    ): ApiResponse {
+    ): ApiResult {
         val customerProfile = customerProfileRepository.findByCustomerId(customerId)
         return when {
             !customerProfile.isPresent -> {
-                val error = GlobalRequestErrorHandler.handleUserNotFoundException(
-                    Exception(
-                        "Customer profile not found"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Customer does not have any profile yet"
+                val errorCode = ErrorCode.CUSTOMER_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
@@ -164,37 +143,29 @@ class CustomerProfileService(
         customerProfileEntity: CustomerProfileEntity,
         addressData: AddressData,
         addressId: UUID
-    ): ApiResponse {
+    ): ApiResult {
         val addresses = customerProfileEntity.getAddresses()
         val addressExists = addressEntityService.isDuplicateAddress(addresses, addressData)
         val addressEntity =
-            when (val updateResponse = addressEntityService.updateAddressEntity(addressId, addressData)) {
-                is RequestResponse.Success -> updateResponse.data
-                is RequestResponse.Error -> null
+            when (val address = addressEntityService.updateAddressEntity(addressId, addressData)) {
+                null  -> null
+                else -> address
             }
         return when {
             addressExists -> {
-                val error = GlobalRequestErrorHandler.handleAddressAlreadyExistsException(
-                    Exception(
-                        "Address already exists"
-                    )
-                )
-                ApiResponse(
-                    status = error.body!!.errorCode,
-                    error = error.body
-                )
+                val errorMessage = "Address already exists"
+                val errorCode = ErrorCode.ADDRESS_ALREADY_EXISTS.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             addressEntity == null -> {
-                val error = GlobalRequestErrorHandler.handleBadRequestException(
-                    Exception(
-                        "Customer profile does not have any address"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Customer does not have any address yet"
+                val errorCode = ErrorCode.ADDRESS_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
@@ -203,10 +174,7 @@ class CustomerProfileService(
                 val customerProfileDTO = CustomerProfileDTO.fromCustomerProfileEntity(
                     savedCustomerProfileEntity
                 )
-                ApiResponse(
-                    status = "200 OK",
-                    data = customerProfileDTO
-                )
+                ApiResult.Success(data = ApiData(customerProfileDTO))
             }
         }
     }
@@ -214,20 +182,16 @@ class CustomerProfileService(
     fun createCustomerAddress(
         customerId: UUID,
         addressData: AddressData
-    ): ApiResponse {
+    ): ApiResult {
         logger.info("TAG: CustomerProfileService.createCustomerAddress()")
         val customerProfile = customerProfileRepository.findByCustomerId(customerId)
         return when {
             !customerProfile.isPresent -> {
-                val error = GlobalRequestErrorHandler.handleUserNotFoundException(
-                    Exception(
-                        "Customer profile not found"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Customer profile not found"
+                val errorCode = ErrorCode.CUSTOMER_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
@@ -239,20 +203,16 @@ class CustomerProfileService(
     private fun handleCreateCustomerAddress(
         customerProfileEntity: CustomerProfileEntity,
         addressData: AddressData
-    ): ApiResponse {
+    ): ApiResult {
         val addresses = customerProfileEntity.getAddresses()
         val addressExists = addressEntityService.isDuplicateAddress(addresses, addressData)
         return when {
             addressExists -> {
-                val error = GlobalRequestErrorHandler.handleBadRequestException(
-                    Exception(
-                        "Address already exists"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Address already exists"
+                val errorCode = ErrorCode.ADDRESS_ALREADY_EXISTS.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
@@ -262,10 +222,7 @@ class CustomerProfileService(
                 val customerProfileDTO = CustomerProfileDTO.fromCustomerProfileEntity(
                     customerProfileEntity
                 )
-                ApiResponse(
-                    status = "200 OK",
-                    data = customerProfileDTO
-                )
+                ApiResult.Success(data = ApiData(customerProfileDTO))
             }
         }
     }

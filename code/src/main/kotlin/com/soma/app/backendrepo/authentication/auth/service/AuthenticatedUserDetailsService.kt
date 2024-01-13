@@ -2,7 +2,6 @@ package com.soma.app.backendrepo.authentication.auth.service
 
 import com.soma.app.backendrepo.model.app_user.AuthenticatedUser
 import com.soma.app.backendrepo.authentication.auth.repository.UserRepository
-import com.soma.app.backendrepo.error_handling.Exception
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service

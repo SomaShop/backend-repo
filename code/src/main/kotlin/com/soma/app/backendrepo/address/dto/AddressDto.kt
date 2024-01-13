@@ -16,7 +16,7 @@ data class AddressDto(
     val city: String,
     val state: String,
     val zipCode: String,
-    val country: CountryDTO,
+    val countryId: UUID?,
     val isDefault: Boolean,
 ) {
     companion object {
@@ -27,7 +27,7 @@ data class AddressDto(
                 city = addressEntity.city,
                 state = addressEntity.state,
                 zipCode = addressEntity.zipCode,
-                country = addressEntity.getCountry().let { CountryDTO.fromCountryEntity(it) },
+                countryId = addressEntity.countryId,
                 isDefault = addressEntity.isDefault,
             )
         }

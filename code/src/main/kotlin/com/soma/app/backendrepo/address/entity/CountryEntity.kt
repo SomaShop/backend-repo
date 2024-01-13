@@ -1,7 +1,5 @@
 package com.soma.app.backendrepo.address.entity
 
-import com.soma.app.backendrepo.utils.constants.countryCode
-import com.soma.app.backendrepo.utils.constants.countryToCurrencies
 import jakarta.persistence.ElementCollection
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -23,7 +21,7 @@ import java.util.UUID
 data class CountryEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    val uuid: UUID? = null,
+    val countryId: UUID? = null,
     val countryName: String,
     val countryNumericCode: String? = null,
     @ElementCollection(fetch = FetchType.LAZY)
@@ -31,9 +29,6 @@ data class CountryEntity(
     val currency: List<String>? = null,
 ) {
     override fun toString(): String {
-        return "CountryEntity(id=$uuid, countryName='$countryName', code='$countryNumericCode', currency='$currency')"
+        return "CountryEntity(id=$countryId, countryName='$countryName', code='$countryNumericCode', currency='$currency')"
     }
-
-    fun getCurrenciesForCountry(): List<String> = countryToCurrencies[countryName] ?: emptyList()
-    fun getCountryCode(): String = countryCode[countryName] ?: ""
 }

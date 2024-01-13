@@ -4,40 +4,39 @@ import com.soma.app.backendrepo.address.entity.AddressEntity
 import com.soma.app.backendrepo.address.entity.CountryEntity
 import com.soma.app.backendrepo.address.pojo.AddressData
 import com.soma.app.backendrepo.address.repository.AddressEntityRepository
-import com.soma.app.backendrepo.error_handling.Exception
-import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
 import com.soma.app.backendrepo.utils.Logger
-import com.soma.app.backendrepo.utils.RequestResponse
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.Optional
+import java.util.UUID
 
 @Service
 class AddressEntityService(
     private val addressEntityRepository: AddressEntityRepository,
     private val countryEntityService: CountryEntityService
 ) {
-    val logger = Logger.getLogger<AddressEntityService>()
+    val log = Logger.getLogger<AddressEntityService>()
     fun createAddress(addressData: AddressData): AddressEntity {
-        val countryEntity = countryEntityService.getCountryByCountryName(addressData.country.countryName)
+        log.info("Creating address entity for address data: $addressData")
+        val country = countryEntityService.getCountryByCountryName(addressData.country.countryName)
             ?: countryEntityService.createCountry(addressData.country)
         val addressEntity = AddressEntity(
             street = addressData.street,
             city = addressData.city,
             state = addressData.state,
             zipCode = addressData.zipCode,
+            countryId = country.countryId
         )
-        addressEntity.assignCountry(countryEntity)
         return saveAddress(addressEntity)
     }
 
-    fun saveAddress(addressEntity: AddressEntity) = addressEntityRepository.save(addressEntity)
+    fun saveAddress(addressEntity: AddressEntity) = addressEntityRepository.saveAndFlush(addressEntity)
 
     fun isDuplicateAddress(existingAddresses: List<AddressEntity>, addressData: AddressData): Boolean {
         return existingAddresses.isNotEmpty() && existingAddresses.any {
             it.street.lowercase() == addressData.street.lowercase() &&
-                    it.city.lowercase() == addressData.city.lowercase() &&
-                    it.state.lowercase() == addressData.state.lowercase() &&
-                    it.zipCode.lowercase() == addressData.zipCode.lowercase()
+                it.city.lowercase() == addressData.city.lowercase() &&
+                it.state.lowercase() == addressData.state.lowercase() &&
+                it.zipCode.lowercase() == addressData.zipCode.lowercase()
         }
     }
 
@@ -49,25 +48,23 @@ class AddressEntityService(
         return countryEntityService.getCountryByCountryName(countryName)
     }
 
-    fun updateAddressEntity(addressId: UUID, addressData: AddressData): RequestResponse<AddressEntity> {
+    fun updateAddressEntity(addressId: UUID, addressData: AddressData): AddressEntity? {
         val addressEntity = findAddressById(addressId)
         return when {
             !addressEntity.isPresent -> {
-                RequestResponse.Error("Address not found")
+                null
             }
 
             else -> {
-                val countryEntity = countryEntityService.getCountryByCountryName(
-                    addressEntity.get().getCountry().countryName
-                )
+                val countryEntity = countryEntityService.findCountryById(addressEntity.get().countryId)
                 val updatedAddressEntity = addressEntity.get().copy(
                     street = addressData.street,
                     city = addressData.city,
                     state = addressData.state,
                     zipCode = addressData.zipCode,
+                    countryId = countryEntity?.countryId
                 )
-                updatedAddressEntity.assignCountry(countryEntity!!)
-                return RequestResponse.Success(saveAddress(updatedAddressEntity))
+                return saveAddress(updatedAddressEntity)
             }
         }
 

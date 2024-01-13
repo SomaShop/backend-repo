@@ -5,13 +5,16 @@ import com.soma.app.backendrepo.address.service.AddressEntityService
 import com.soma.app.backendrepo.profile.merchant.dto.MerchantProfileDTO
 import com.soma.app.backendrepo.profile.merchant.pojo.MerchantProfileData
 import com.soma.app.backendrepo.model.app_user.UserEntity
-import com.soma.app.backendrepo.error_handling.ApiResponse
-import com.soma.app.backendrepo.error_handling.Exception
-import com.soma.app.backendrepo.error_handling.GlobalRequestErrorHandler
-import com.soma.app.backendrepo.utils.RequestResponse
+import com.soma.app.backendrepo.error_handling.ErrorCode
+import com.soma.app.backendrepo.error_handling.exceptions.ApiException
+import com.soma.app.backendrepo.utils.ApiData
+import com.soma.app.backendrepo.utils.ApiError
+import com.soma.app.backendrepo.utils.ApiResult
+import com.soma.app.backendrepo.utils.Logger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
+import org.springframework.http.HttpStatus
 
 
 /**
@@ -26,26 +29,23 @@ class MerchantProfileService(
     private val merchantProfileRepository: MerchantProfileRepository,
     private val addressEntityService: AddressEntityService
 ) {
-    fun getMerchantProfile(user: UserEntity): ApiResponse {
+    val log = Logger.getLogger<MerchantProfileService>()
+    fun getMerchantProfile(user: UserEntity): ApiResult {
         val merchantProfile = merchantProfileRepository.findByUser(user)
         return when {
             !merchantProfile.isPresent -> {
-                val error = GlobalRequestErrorHandler.handleUserNotFoundException(
-                    Exception(
-                        errorMessage = "Merchant profile not found",
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Merchant profile not found"
+                val errorCode = ErrorCode.MERCHANT_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
                 val merchantProfileDTO = MerchantProfileDTO.fromMerchantProfileEntity(
                     merchantProfile.get()
                 )
-                return ApiResponse("200 OK", merchantProfileDTO)
+                ApiResult.Success(data = ApiData(merchantProfileDTO))
             }
         }
     }
@@ -55,19 +55,15 @@ class MerchantProfileService(
         user: UserEntity,
         id: UUID,
         updateRequest: MerchantProfileData
-    ): ApiResponse {
+    ): ApiResult {
         val profile = merchantProfileRepository.findByMerchantId(id)
         when {
             !profile.isPresent -> {
-                val error = GlobalRequestErrorHandler.handleUserNotFoundException(
-                    Exception(
-                        "Merchant profile not found"
-                    )
-                )
-                return ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Merchant profile not found"
+                val errorCode = ErrorCode.MERCHANT_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
@@ -86,24 +82,20 @@ class MerchantProfileService(
                 updatedMerchantProfile.assignUser(user)
                 merchantProfileRepository.save(updatedMerchantProfile)
                 val merchantProfileDTO = MerchantProfileDTO.fromMerchantProfileEntity(updatedMerchantProfile)
-                return ApiResponse("200 OK", merchantProfileDTO)
+                return ApiResult.Success(data = ApiData(merchantProfileDTO))
             }
         }
     }
 
-    fun createMerchantAddress(merchantId: UUID, addressData: AddressData): ApiResponse {
+    fun createMerchantAddress(merchantId: UUID, addressData: AddressData): ApiResult {
         val merchantProfile = merchantProfileRepository.findByMerchantId(merchantId)
         return when {
             !merchantProfile.isPresent -> {
-                val error = GlobalRequestErrorHandler.handleUserNotFoundException(
-                    Exception(
-                        "Merchant profile not found"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Merchant profile not found"
+                val errorCode = ErrorCode.MERCHANT_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
@@ -115,20 +107,17 @@ class MerchantProfileService(
     private fun handleMerchantCreationAddress(
         merchantProfileEntity: MerchantProfileEntity,
         addressData: AddressData
-    ): ApiResponse {
+    ): ApiResult {
         val addresses = merchantProfileEntity.getAddresses()
         val addressExists = addressEntityService.isDuplicateAddress(addresses, addressData)
         return when {
             addressExists -> {
-                val error = GlobalRequestErrorHandler.handleAddressAlreadyExistsException(
-                    Exception(
-                        "Address already exists"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.toString(),
-                    error = error.body
-                )
+                val errorMessage = "Address already exists"
+                val errorCode = ErrorCode.ADDRESS_ALREADY_EXISTS.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
+
             }
 
             else -> {
@@ -136,7 +125,7 @@ class MerchantProfileService(
                 merchantProfileEntity.addAddress(address)
                 val savedMerchantAddressEntity = merchantProfileRepository.save(merchantProfileEntity)
                 val merchantProfileDTO = MerchantProfileDTO.fromMerchantProfileEntity(savedMerchantAddressEntity)
-                ApiResponse("200 OK", merchantProfileDTO)
+                ApiResult.Success(data = ApiData(merchantProfileDTO))
             }
         }
     }
@@ -146,19 +135,15 @@ class MerchantProfileService(
         merchantId: UUID,
         addressId: UUID,
         addressData: AddressData
-    ): ApiResponse {
+    ): ApiResult {
         val merchantProfile = merchantProfileRepository.findByMerchantId(merchantId)
         return when {
             !merchantProfile.isPresent -> {
-                val error = GlobalRequestErrorHandler.handleUserNotFoundException(
-                    Exception(
-                        "Merchant profile not found"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.name,
-                    error = error.responseData
-                )
+                val errorMessage = "Merchant profile not found"
+                val errorCode = ErrorCode.MERCHANT_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
@@ -171,44 +156,36 @@ class MerchantProfileService(
         merchantProfileEntity: MerchantProfileEntity,
         addressId: UUID,
         addressData: AddressData
-    ): ApiResponse {
+    ): ApiResult {
         val addresses = merchantProfileEntity.getAddresses()
         val addressExists = addressEntityService.isDuplicateAddress(addresses, addressData)
         val addressEntity =
-            when (val updateResponse = addressEntityService.updateAddressEntity(addressId, addressData)) {
-                is RequestResponse.Success -> updateResponse.data
-                is RequestResponse.Error -> null
+            when (val address = addressEntityService.updateAddressEntity(addressId, addressData)) {
+                null -> null
+                else -> address
             }
         return when {
             addressEntity == null -> {
-                val error = GlobalRequestErrorHandler.handleBadRequestException(
-                    Exception(
-                        "Address not found"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.toString(),
-                    error = error.body
-                )
+                val errorMessage = "Address not found"
+                val errorCode = ErrorCode.ADDRESS_NOT_FOUND.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             addressExists -> {
-                val error = GlobalRequestErrorHandler.handleAddressAlreadyExistsException(
-                    Exception(
-                        "Address already exists"
-                    )
-                )
-                ApiResponse(
-                    status = error.statusCode.toString(),
-                    error = error.body
-                )
+                val errorMessage = "Address already exists"
+                val errorCode = ErrorCode.ADDRESS_ALREADY_EXISTS.name
+                val apiError = ApiError(errorCode = errorCode, message = errorMessage)
+                ApiResult.Error(apiError)
+                throw ApiException(apiError = apiError, status = HttpStatus.INTERNAL_SERVER_ERROR.value())
             }
 
             else -> {
                 merchantProfileEntity.updateMerchantAddresses(addressEntity)
                 val savedMerchantAddressEntity = merchantProfileRepository.save(merchantProfileEntity)
                 val merchantProfileDTO = MerchantProfileDTO.fromMerchantProfileEntity(savedMerchantAddressEntity)
-                ApiResponse("200 OK", merchantProfileDTO)
+                ApiResult.Success(data = ApiData(merchantProfileDTO))
             }
         }
     }
